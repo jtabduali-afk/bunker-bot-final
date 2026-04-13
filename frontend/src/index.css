@@ -568,3 +568,16 @@ h2.screen-title {
   70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
+
+.speech-bubble-master {
+  position: fixed;
+  bottom: 100px;
+  left: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--c-yellow);
+  padding: 15px;
+  border-radius: 12px;
+  z-index: 4000;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}

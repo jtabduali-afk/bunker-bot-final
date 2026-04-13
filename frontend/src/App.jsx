@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const SOCKET_URL = window.location.origin; // Используем текущий домен (Express раздает и фронт и сокеты)
 const ICONS = {

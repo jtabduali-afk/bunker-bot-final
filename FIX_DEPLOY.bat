@@ -22,7 +22,7 @@ echo [OK] Git found at: !GIT_EXE!
 
 echo [2/3] Preparing files...
 "!GIT_EXE!" add .
-"!GIT_EXE!" commit -m "Fix critical audioRef crash and improve logging"
+"!GIT_EXE!" commit -m "Fix ReferenceError: AnimatePresence is not defined"
 
 echo [3/3] Pushing to GitHub...
 "!GIT_EXE!" push origin main
