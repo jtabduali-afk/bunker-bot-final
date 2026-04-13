@@ -40,6 +40,8 @@ function App() {
   const [screen, setScreen] = useState('MENU');
   // Добавим защиту от бесконечных циклов
   const renderCount = useRef(0);
+  const audioRef = useRef(null);
+  
   useEffect(() => {
     renderCount.current++;
     if (renderCount.current > 100) {
@@ -562,7 +564,16 @@ function App() {
       </button>
 
       <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>БУНКЕР</h1>
-      <div style={{ color: 'green', textAlign: 'center', fontWeight: 'bold' }}>СИСТЕМА ОНЛАЙН</div>
+      <div style={{ 
+          color: socket?.connected ? '#2ecc71' : '#e74c3c', 
+          textAlign: 'center', 
+          fontWeight: 'bold',
+          fontSize: '0.8rem',
+          textShadow: '0 0 5px rgba(0,0,0,0.5)',
+          marginBottom: '10px'
+      }}>
+          {socket?.connected ? '● СИСТЕМА ОНЛАЙН' : '○ ПОДКЛЮЧЕНИЕ ПРЕРВАНО...'}
+      </div>
       
       {screen === 'MENU' && renderMenu()}
       {screen === 'LOBBY' && renderLobby()}

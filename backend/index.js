@@ -21,7 +21,17 @@ app.use(express.json());
 
 // Раздача фронтенда (static files)
 const frontendPath = path.resolve(__dirname, '../frontend/dist');
-console.log('📂 Путь к фронтенду:', frontendPath);
+console.log('📂 Попытка раздачи фронтенда из:', frontendPath);
+
+if (process.env.NODE_ENV === 'production') {
+    import('fs').then(fs => {
+        if (!fs.existsSync(frontendPath)) {
+            console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Папка /frontend/dist не найдена! Убедитесь, что билд прошел успешно.');
+        } else {
+            console.log('✅ Папка /frontend/dist найдена. Файлы готовы к раздаче.');
+        }
+    });
+}
 
 app.use(express.static(frontendPath));
 
