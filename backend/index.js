@@ -20,11 +20,22 @@ app.use(cors());
 app.use(express.json());
 
 // Раздача фронтенда (static files)
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+const frontendPath = path.resolve(__dirname, '../frontend/dist');
+console.log('📂 Путь к фронтенду:', frontendPath);
+
+app.use(express.static(frontendPath));
+
 app.get('*', (req, res, next) => {
     // Если это не API запрос, отдаем index.html
     if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    
+    const indexPath = path.join(frontendPath, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            console.error('❌ Ошибка отправки index.html:', err.message);
+            res.status(404).send('Игра еще не собрана или путь неверный. Проверьте логи сборки.');
+        }
+    });
 });
 
 const server = http.createServer(app);
