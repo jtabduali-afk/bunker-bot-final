@@ -51,11 +51,22 @@ if (botToken && botToken !== 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER') {
 
 const PORT = process.env.PORT || 3000;
 
-// Запуск Localtunnel для публичного доступа (только в режиме разработки)
-const setupTunnel = async () => {
-    // Если мы на Render или другом хостинге, туннель не нужен
+// Запуск настройки доступа
+const setupAccess = async () => {
+    // Если мы на Render, используем переменную окружения
     if (process.env.NODE_ENV === 'production') {
-        console.log('🌐 Работаем в режиме Production. Ожидаем запросы на порт:', PORT);
+        const prodUrl = process.env.FRONTEND_URL;
+        console.log('🌐 Режим Production. Целевой URL:', prodUrl);
+        
+        if (prodUrl && bot && bot.telegram) {
+            bot.telegram.setChatMenuButton({
+                menu_button: {
+                    type: 'web_app',
+                    text: 'Играть в Бункер ☢️',
+                    web_app: { url: prodUrl }
+                }
+            }).catch(() => console.log('Не удалось обновить Menu Button в Prod (не критично)'));
+        }
         return;
     }
 
@@ -65,10 +76,8 @@ const setupTunnel = async () => {
         console.log(`\n\x1b[42m\x1b[30m %s \x1b[0m`, `ГОРЯЧАЯ ССЫЛКА ДЛЯ ТЕСТИРОВАНИЯ:`);
         console.log(`\x1b[32m%s\x1b[0m\n`, tunnel.url); 
         
-        // Обновляем FRONTEND_URL в окружении, чтобы бот знал актуальный адрес
         process.env.FRONTEND_URL = tunnel.url;
 
-        // Попробуем автоматически обновить Menu Button
         if (bot && bot.telegram) {
             bot.telegram.setChatMenuButton({
                 menu_button: {
@@ -87,7 +96,7 @@ const setupTunnel = async () => {
     }
 };
 
-setupTunnel();
+setupAccess();
 
 // Простой API эндпоинт для проверки здоровья сервера
 app.get('/api/health', (req, res) => {
