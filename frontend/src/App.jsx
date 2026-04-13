@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
-import { motion, AnimatePresence } from 'framer-motion'
 
 const SOCKET_URL = window.location.origin; // Используем текущий домен (Express раздает и фронт и сокеты)
 const ICONS = {
@@ -778,26 +777,9 @@ function App() {
         </div>
       )}
 
-      <AnimatePresence>
         {spotlightCard && (
-          <motion.div 
-            className={`spotlight-overlay ${spotlightMinimized ? 'minimized' : ''}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSpotlightMinimized(!spotlightMinimized)}
-          >
-            <motion.div 
-               className={`card-big ${THEMES[spotlightCard.cardKey]} spotlight-card`}
-               initial={{ scale: 0.2, y: 300, opacity: 0 }}
-               animate={spotlightMinimized ? { scale: 0.35, y: 0, x: 0, opacity: 1 } : { scale: 1, y: 0, x: 0, opacity: 1 }}
-               exit={{ scale: 0.2, y: -300, opacity: 0 }}
-               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-               onClick={(e) => {
-                  e.stopPropagation();
-                  setSpotlightMinimized(!spotlightMinimized);
-               }}
-            >
+          <div className={`spotlight-overlay ${spotlightMinimized ? 'minimized' : ''}`} onClick={() => setSpotlightMinimized(!spotlightMinimized)}>
+            <div className={`card-big ${THEMES[spotlightCard.cardKey]} spotlight-card`} onClick={(e) => { e.stopPropagation(); setSpotlightMinimized(!spotlightMinimized); }}>
                <div className="card-big-header">{LABELS[spotlightCard.cardKey]}</div>
                <div className="card-big-body">
                   <div className="card-big-icon" style={{ fontSize: '6rem' }}>{ICONS[spotlightCard.cardKey]}</div>
@@ -807,36 +789,23 @@ function App() {
                           : typeof spotlightCard.value === 'object' ? spotlightCard.value.text : spotlightCard.value}
                   </div>
                </div>
-            </motion.div>
-            
+            </div>
             {!spotlightMinimized && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="spotlight-title">
+              <div className="spotlight-title">
                  {spotlightCard.playerName} ОТКРЫВАЕТ КАРТУ!
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         )}
         
         {eliminatedPlayerInfo && (
-           <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="spotlight-overlay"
-              style={{ background: 'rgba(150, 0, 0, 0.9)' }}
-           >
+           <div className="spotlight-overlay" style={{ background: 'rgba(150, 0, 0, 0.9)' }}>
               <div style={{ fontSize: '8rem' }}>💀</div>
-              <motion.h2 
-                 initial={{ scale: 0.5 }}
-                 animate={{ scale: 1 }}
-                 transition={{ type: 'spring', damping: 10 }}
-                 style={{ fontFamily: 'Teko', fontSize: '3rem', color: '#fff', textShadow: '4px 4px 0px #000', textAlign: 'center', padding: '20px' }}
-              >
+              <h2 style={{ fontFamily: 'Teko', fontSize: '3rem', color: '#fff', textShadow: '4px 4px 0px #000', textAlign: 'center', padding: '20px' }}>
                   {eliminatedPlayerInfo.eliminatedName.toUpperCase()} ИЗГНАН ИЗ БУНКЕРА!
-              </motion.h2>
-           </motion.div>
+              </h2>
+           </div>
         )}
-      </AnimatePresence>
 
       {actionAnnouncement && (
          <div className="action-announcement">
