@@ -41,8 +41,9 @@ app.get('*', (req, res, next) => {
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*', // Разрешаем подключение Web App с любого адреса
-        methods: ["GET", "POST"]
+        origin: "*", 
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
