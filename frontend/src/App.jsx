@@ -38,6 +38,7 @@ const LABELS = {
 };
 
 function App() {
+  console.log('⚛️ React: App component is rendering. Screen:', 'MENU');
   const [screen, setScreen] = useState('MENU');
   const [round, setRound] = useState(1);
   const [volume, setVolume] = useState(0.2);
