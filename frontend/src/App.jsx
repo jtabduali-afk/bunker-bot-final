@@ -39,6 +39,7 @@ const LABELS = {
 
 function App() {
   const [screen, setScreen] = useState('MENU');
+  const [isConnected, setIsConnected] = useState(false);
   // Добавим защиту от бесконечных циклов
   const renderCount = useRef(0);
   const audioRef = useRef(null);
@@ -119,11 +120,16 @@ function App() {
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
+        setIsConnected(true);
         if (startParam) {
             newSocket.emit('join_room', { roomId: startParam, playerId: currentId, playerName: currentName });
             setRoomId(startParam);
             setScreen('LOBBY');
         }
+    });
+
+    newSocket.on('disconnect', () => {
+        setIsConnected(false);
     });
 
     newSocket.on('room_update', (data) => {
@@ -566,14 +572,14 @@ function App() {
 
       <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>БУНКЕР</h1>
       <div style={{ 
-          color: socket?.connected ? '#2ecc71' : '#e74c3c', 
+          color: isConnected ? '#2ecc71' : '#e74c3c', 
           textAlign: 'center', 
           fontWeight: 'bold',
           fontSize: '0.8rem',
           textShadow: '0 0 5px rgba(0,0,0,0.5)',
-          marginBottom: '10px'
+          marginBottom: '20px'
       }}>
-          {socket?.connected ? '● СИСТЕМА ОНЛАЙН' : '○ ПОДКЛЮЧЕНИЕ ПРЕРВАНО...'}
+          {isConnected ? '● СИСТЕМА ОНЛАЙН' : '○ ПОДКЛЮЧЕНИЕ ПРЕРВАНО...'}
       </div>
       
       {screen === 'MENU' && renderMenu()}
@@ -747,7 +753,7 @@ function App() {
                    <p style={{ fontSize: '0.8rem', color: 'var(--c-grey)', marginTop: '5px', marginBottom: 0 }}>Остальные должны быть изгнаны до окончания игры.</p>
                </div>
 
-               <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => setShowBunkerModal(false)}>Я ПОНЯЛ, ВЫЖИВАЕМ</button>
+               <button className="btn-primary" style={{ marginTop: '30px' }} onClick={() => setShowBunkerModal(false)}>Я ПОНЯЛ, ВЫЖИВАЕМ</button>
            </div>
         </div>
       )}
