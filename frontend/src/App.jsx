@@ -38,8 +38,15 @@ const LABELS = {
 };
 
 function App() {
-  console.log('⚛️ React: App component is rendering. Screen:', 'MENU');
   const [screen, setScreen] = useState('MENU');
+  // Добавим защиту от бесконечных циклов
+  const renderCount = useRef(0);
+  useEffect(() => {
+    renderCount.current++;
+    if (renderCount.current > 100) {
+       console.error('🛑 Обнаружена петля рендеринга! Останавливаю лишние обновления.');
+    }
+  });
   const [round, setRound] = useState(1);
   const [volume, setVolume] = useState(0.2);
   const [timeLeft, setTimeLeft] = useState(0); 
@@ -555,7 +562,8 @@ function App() {
          {volume > 0 ? '🔊' : '🔇'}
       </button>
 
-      <h1 className="game-title">БУНКЕР</h1>
+      <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>БУНКЕР</h1>
+      <div style={{ color: 'green', textAlign: 'center', fontWeight: 'bold' }}>СИСТЕМА ОНЛАЙН</div>
       
       {screen === 'MENU' && renderMenu()}
       {screen === 'LOBBY' && renderLobby()}
