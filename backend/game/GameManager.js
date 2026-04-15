@@ -17,6 +17,28 @@ export class GameManager {
     getRoom(roomId) {
         return this.rooms.get(roomId.toUpperCase());
     }
+
+    findRoomByPlayer(playerId) {
+        for (const room of this.rooms.values()) {
+            if (room.players.find(p => p.id === playerId)) {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    removePlayerFromAllRooms(playerId, io) {
+        for (const room of this.rooms.values()) {
+            const playerIndex = room.players.findIndex(p => p.id === playerId);
+            if (playerIndex !== -1) {
+                room.leave(playerId, io);
+                // Если комната стала пустой, удаляем её
+                if (room.players.length === 0) {
+                    this.rooms.delete(room.id);
+                }
+            }
+        }
+    }
 }
 
 class Room {
@@ -39,17 +61,30 @@ class Room {
     }
 
     join(playerData) { 
-        if (!this.players.find(p => p.id === playerData.id)) {
-            this.players.push({
-                ...playerData, // Includes id, name, socketId, photoUrl
-                photoUrl: playerData.photoUrl || null,
-                isAlive: true,
-                character: generateRandomCharacter(),
-                revealedCards: [] 
-            });
+        const existingPlayer = this.players.find(p => p.id === playerData.id);
+        if (existingPlayer) {
+            // Если игрок уже тут, просто обновляем его сокет
+            existingPlayer.socketId = playerData.socketId;
+            existingPlayer.name = playerData.name;
+            existingPlayer.photoUrl = playerData.photoUrl || existingPlayer.photoUrl;
             return true;
         }
-        return false;
+
+        this.players.push({
+            ...playerData, 
+            photoUrl: playerData.photoUrl || null,
+            isAlive: true,
+            character: generateRandomCharacter(),
+            revealedCards: [] 
+        });
+        return true;
+    }
+
+    leave(playerId, io) {
+        this.players = this.players.filter(p => p.id !== playerId);
+        if (io) {
+            io.to(this.id).emit('room_update', { players: this.players });
+        }
     }
 
     startGame(io) {
