@@ -13,9 +13,11 @@ export const bot = botToken && botToken !== 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER'
     command: () => {},
     on: () => {},
     telegram: { 
-        sendMessage: () => ({ message_id: 0 }), 
-        copyMessage: () => {},
-        deleteMessage: () => {}
+        sendMessage: async () => ({ message_id: 0 }), 
+        copyMessage: async () => ({ message_id: 0 }),
+        deleteMessage: async () => true,
+        getChatMember: async () => ({ status: 'left' }), // По умолчанию считаем, что не подписан в режиме заглушки
+        setChatMenuButton: async () => true
     }
 };
 
