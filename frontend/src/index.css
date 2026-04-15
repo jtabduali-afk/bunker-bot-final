@@ -172,6 +172,9 @@ h2.screen-title::after, h2.screen-title::before {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
   margin-bottom: 24px;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .room-code-display {
