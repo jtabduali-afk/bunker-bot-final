@@ -145,11 +145,15 @@ io.on('connection', (socket) => {
 
     // Обработка создания новой комнаты
     socket.on('create_room', async (data, callback) => {
-        const { playerId, playerName, photoUrl } = data;
+        const { playerId, playerName, photoUrl, isRetry } = data;
         
         const isSubscribed = await checkSubscription(playerId);
         if (!isSubscribed) {
-            socket.emit('error', { type: 'SUBSCRIPTION_REQUIRED', message: 'Для игры необходимо подписаться на наш канал @SectorX7' });
+            socket.emit('error', { 
+                type: 'SUBSCRIPTION_REQUIRED', 
+                message: 'Для игры необходимо подписаться на наш канал @SectorX7',
+                isRetry: !!isRetry
+            });
             return;
         }
 
@@ -165,11 +169,15 @@ io.on('connection', (socket) => {
 
     // Обработка подключения игрока к комнате из фронтенда
     socket.on('join_room', async (data) => {
-        const { roomId, playerId, playerName, photoUrl } = data;
+        const { roomId, playerId, playerName, photoUrl, isRetry } = data;
         
         const isSubscribed = await checkSubscription(playerId);
         if (!isSubscribed) {
-            socket.emit('error', { type: 'SUBSCRIPTION_REQUIRED', message: 'Для игры необходимо подписаться на наш канал @SectorX7' });
+            socket.emit('error', { 
+                type: 'SUBSCRIPTION_REQUIRED', 
+                message: 'Для игры необходимо подписаться на наш канал @SectorX7',
+                isRetry: !!isRetry
+            });
             return;
         }
 
