@@ -22,7 +22,7 @@ echo [OK] Git found at: !GIT_EXE!
 
 echo [2/3] Preparing files...
 "!GIT_EXE!" add .
-"!GIT_EXE!" commit -m "UI/UX Polish: Fix socket status, improve spacing and modals"
+"!GIT_EXE!" commit -m "Emergency Fix: Restore bot responsiveness and stabilize imports"
 
 echo [3/3] Pushing to GitHub...
 "!GIT_EXE!" push origin main
