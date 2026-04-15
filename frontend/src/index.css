@@ -386,16 +386,25 @@ h2.screen-title::after, h2.screen-title::before {
 }
 
 .player-avatar {
-  font-size: 2.2rem;
-  margin-bottom: 12px;
-  width: 60px;
-  height: 60px;
-  background: rgba(255,255,255,0.03);
-  display: inline-flex;
+  width: 50px;
+  height: 50px;
+  background: var(--bg-surface);
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--glass-border);
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  border: 2px solid var(--glass-border);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--danger)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--danger)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--danger)); }
 }
 
 .player-name {
