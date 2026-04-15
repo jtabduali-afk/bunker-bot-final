@@ -94,6 +94,8 @@ function App() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showForceRevealModal, setShowForceRevealModal] = useState(false);
   const [playerPhoto, setPlayerPhoto] = useState(null);
+  const [subError, setSubError] = useState('');
+  const [lastAttempt, setLastAttempt] = useState(null); // { type: 'CREATE' } или { type: 'JOIN', roomId: '...' }
   
   // Speeches
   const [speechText, setSpeechText] = useState('');
@@ -146,11 +148,15 @@ function App() {
         if (data.bunkerCondition) {
             setBunkerCondition(data.bunkerCondition);
         }
+        // Если мы успешно получили обновление комнаты, значит мы внутри - закрываем модалку подписки
+        setShowSubscriptionModal(false);
+        setSubError('');
     });
 
     newSocket.on('error', (data) => {
         if (data.type === 'SUBSCRIPTION_REQUIRED') {
             setShowSubscriptionModal(true);
+            setSubError(data.isRetry ? 'Вы всё еще не подписаны на канал @SectorX7' : '');
         } else {
             alert("Ошибка: " + data.message);
         }
@@ -289,21 +295,41 @@ function App() {
 
   const moveToLobby = () => {
     if (!socket) return;
+    setLastAttempt({ type: 'CREATE' });
     playBackgroundMusic(); 
     socket.emit('create_room', { playerId, playerName, photoUrl: playerPhoto }, (response) => {
         setRoomId(response.roomId);
         setPlayers(response.players);
         setScreen('LOBBY');
+        setShowSubscriptionModal(false);
+        setSubError('');
     });
   };
 
   const handleJoinSubmit = () => {
     if (!socket || !joinCode) return;
+    setLastAttempt({ type: 'JOIN', roomId: joinCode });
     playBackgroundMusic();
     socket.emit('join_room', { roomId: joinCode, playerId, playerName, photoUrl: playerPhoto });
     setRoomId(joinCode);
     setScreen('LOBBY');
     setShowJoinModal(false);
+  };
+
+  const handleRecheckSubscription = () => {
+    if (!socket || !lastAttempt) return;
+    setSubError(''); // Сбрасываем старую ошибку перед проверкой
+    
+    if (lastAttempt.type === 'CREATE') {
+        socket.emit('create_room', { playerId, playerName, photoUrl: playerPhoto, isRetry: true }, (response) => {
+            setRoomId(response.roomId);
+            setPlayers(response.players);
+            setScreen('LOBBY');
+            setShowSubscriptionModal(false);
+        });
+    } else if (lastAttempt.type === 'JOIN') {
+        socket.emit('join_room', { roomId: lastAttempt.roomId, playerId, playerName, photoUrl: playerPhoto, isRetry: true });
+    }
   };
 
   const handleNicknameChange = () => {
@@ -877,8 +903,14 @@ function App() {
              <p style={{ marginBottom: '24px', lineHeight: '1.5' }}>
                Для участия в игре необходимо подписаться на наш Telegram канал. Это помогает нам развивать проект!
              </p>
-             <button className="btn-primary" onClick={() => window.open('https://t.me/SectorX7', '_blank')}>ПОДПИСАТЬСЯ</button>
-             <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={() => window.location.reload()}>Я ПОДПИСАЛСЯ</button>
+              <button className="btn-primary" onClick={() => window.open('https://t.me/SectorX7', '_blank')}>ПОДПИСАТЬСЯ</button>
+              <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={handleRecheckSubscription}>Я ПОДПИСАЛСЯ</button>
+              
+              {subError && (
+                 <div style={{ color: 'var(--danger)', marginTop: '16px', fontSize: '0.9rem', fontWeight: '600', animation: 'scaleUp 0.2s ease-out' }}>
+                    ⚠️ {subError}
+                 </div>
+              )}
           </div>
         </div>
       )}
