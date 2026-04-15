@@ -130,12 +130,15 @@ app.get('/api/health', (req, res) => {
 // Работа с Web App через WebSockets в реальном времени
 const checkSubscription = async (userId) => {
     try {
+        console.log(`[Subscription] Проверка пользователя ${userId} в канале @SectorX7...`);
         // Проверяем подписку на канал @SectorX7
         const member = await bot.telegram.getChatMember('@SectorX7', userId);
         const allowedStatuses = ['member', 'administrator', 'creator'];
-        return allowedStatuses.includes(member.status);
+        const isSubscribed = allowedStatuses.includes(member.status);
+        console.log(`[Subscription] Статус пользователя ${userId}: ${member.status}. Результат: ${isSubscribed}`);
+        return isSubscribed;
     } catch (error) {
-        console.error('Ошибка проверки подписки:', error.message);
+        console.error(`[Subscription ERROR] Ошибка проверки пользователя ${userId}:`, error.message);
         return false; // По умолчанию считаем, что не подписан, если ошибка
     }
 };
