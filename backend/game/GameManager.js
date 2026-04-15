@@ -18,6 +18,19 @@ export class GameManager {
         return this.rooms.get(roomId.toUpperCase());
     }
 
+    startCleanupTask(io) {
+        setInterval(() => {
+            const now = Date.now();
+            for (const [roomId, room] of this.rooms.entries()) {
+                // Если в комнате нет людей или она неактивна более 3 минут
+                if (room.players.length === 0 || (now - room.lastActivity > 180000)) {
+                    console.log(`[Cleanup] Удаление комнаты ${roomId} по неактивности`);
+                    this.rooms.delete(roomId);
+                }
+            }
+        }, 60000); // Проверка каждую минуту
+    }
+
     findRoomByPlayer(playerId) {
         for (const room of this.rooms.values()) {
             if (room.players.find(p => p.id === playerId)) {
@@ -59,6 +72,11 @@ class Room {
             hasRevealedInTurn: false,
             messages: [] // История чата
         };
+        this.lastActivity = Date.now();
+    }
+
+    updateActivity() {
+        this.lastActivity = Date.now();
     }
 
     join(playerData) { 
@@ -83,6 +101,7 @@ class Room {
 
     leave(playerId, io) {
         this.players = this.players.filter(p => p.id !== playerId);
+        this.updateActivity();
         if (io) {
             io.to(this.id).emit('room_update', { players: this.players });
         }
