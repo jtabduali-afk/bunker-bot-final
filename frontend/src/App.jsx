@@ -91,6 +91,9 @@ function App() {
   const [tempPlayerName, setTempPlayerName] = useState('');
   const [isReady, setIsReady] = useState(false);
   const [readyStats, setReadyStats] = useState({ ready: 0, total: 0 });
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showForceRevealModal, setShowForceRevealModal] = useState(false);
+  const [playerPhoto, setPlayerPhoto] = useState(null);
   
   // Speeches
   const [speechText, setSpeechText] = useState('');
@@ -109,11 +112,13 @@ function App() {
         window.Telegram.WebApp.expand();
 
         if (window.Telegram.WebApp.initDataUnsafe?.user) {
-        currentName = window.Telegram.WebApp.initDataUnsafe.user.first_name;
-        currentId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
-        setPlayerName(currentName);
-        setPlayerId(currentId);
-        startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
+          currentName = window.Telegram.WebApp.initDataUnsafe.user.first_name;
+          currentId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
+          const photo = window.Telegram.WebApp.initDataUnsafe.user.photo_url;
+          setPlayerName(currentName);
+          setPlayerId(currentId);
+          setPlayerPhoto(photo);
+          startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
         }
     }
     const urlParams = new URLSearchParams(window.location.search);
@@ -125,7 +130,8 @@ function App() {
     newSocket.on('connect', () => {
         setIsConnected(true);
         if (startParam) {
-            newSocket.emit('join_room', { roomId: startParam, playerId: currentId, playerName: currentName });
+            const photo = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url;
+            newSocket.emit('join_room', { roomId: startParam, playerId: currentId, playerName: currentName, photoUrl: photo });
             setRoomId(startParam);
             setScreen('LOBBY');
         }
@@ -143,7 +149,17 @@ function App() {
     });
 
     newSocket.on('error', (data) => {
-        alert("Ошибка: " + data.message);
+        if (data.type === 'SUBSCRIPTION_REQUIRED') {
+            setShowSubscriptionModal(true);
+        } else {
+            alert("Ошибка: " + data.message);
+        }
+    });
+
+    newSocket.on('force_reveal_required', (data) => {
+        if (data.playerId === currentId) {
+            setShowForceRevealModal(true);
+        }
     });
 
     newSocket.on('game_started', (data) => {
@@ -184,6 +200,9 @@ function App() {
     newSocket.on('card_revealed', (data) => {
         setSpotlightCard(data);
         setSpotlightMinimized(false);
+        if (data.playerId === currentId) {
+            setShowForceRevealModal(false);
+        }
     });
 
     newSocket.on('your_cards', (data) => {
@@ -271,7 +290,7 @@ function App() {
   const moveToLobby = () => {
     if (!socket) return;
     playBackgroundMusic(); 
-    socket.emit('create_room', { playerId, playerName }, (response) => {
+    socket.emit('create_room', { playerId, playerName, photoUrl: playerPhoto }, (response) => {
         setRoomId(response.roomId);
         setPlayers(response.players);
         setScreen('LOBBY');
@@ -281,7 +300,7 @@ function App() {
   const handleJoinSubmit = () => {
     if (!socket || !joinCode) return;
     playBackgroundMusic();
-    socket.emit('join_room', { roomId: joinCode, playerId, playerName });
+    socket.emit('join_room', { roomId: joinCode, playerId, playerName, photoUrl: playerPhoto });
     setRoomId(joinCode);
     setScreen('LOBBY');
     setShowJoinModal(false);
@@ -420,9 +439,13 @@ function App() {
       <ul className="player-list">
         {players.map(p => (
            <li key={p.id}>
-             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {p.id === players[0]?.id ? '🛡️' : '👤'}
-                <span>{p.name} {p.id === playerId && '(Вы)'}</span>
+             <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {p.photoUrl ? (
+                   <img src={p.photoUrl} alt={p.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--primary)' }} />
+                ) : (
+                   <span style={{ fontSize: '1.2rem' }}>{p.id === players[0]?.id ? '🛡️' : '👤'}</span>
+                )}
+                <span style={{ fontWeight: '600' }}>{p.name} {p.id === playerId && '(Вы)'}</span>
              </span>
              {p.id === playerId && (
                  <button 
@@ -559,7 +582,14 @@ function App() {
            <div className="players-grid" style={{ marginBottom: '32px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                {gameOverData.survivors.map(p => (
                    <div key={p.id} className="player-slot" style={{ border: '1px solid var(--primary)' }}>
-                       <div className="player-avatar">👥</div>
+                       <div className="player-avatar">
+                          {p.photoUrl ? (
+                              <img src={p.photoUrl} alt={p.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                              '👤'
+                          )}
+                          {p.isMuted && <div style={{ position: 'absolute', bottom: -5, right: -5, fontSize: '1rem' }}>🔇</div>}
+                       </div>
                        <div className="player-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
                    </div>
                ))}
@@ -606,7 +636,7 @@ function App() {
          {volume > 0 ? '🔊' : '🔇'}
       </button>
 
-      <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>БУНКЕР</h1>
+      <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>Sector X</h1>
       <div style={{ 
           color: isConnected ? '#2ecc71' : '#e74c3c', 
           textAlign: 'center', 
@@ -835,6 +865,35 @@ function App() {
              </div>
 
              <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => setShowRulesModal(false)}>ПОНЯТНО</button>
+          </div>
+        </div>
+      )}
+
+      {showSubscriptionModal && (
+        <div className="modal-overlay" style={{ zIndex: 7000 }}>
+          <div className="menu-box" style={{ width: '90%', maxWidth: '380px', textAlign: 'center' }}>
+             <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📢</div>
+             <h2 className="screen-title" style={{ color: 'var(--primary)' }}>ПОДПИСКА</h2>
+             <p style={{ marginBottom: '24px', lineHeight: '1.5' }}>
+               Для участия в игре необходимо подписаться на наш Telegram канал. Это помогает нам развивать проект!
+             </p>
+             <button className="btn-primary" onClick={() => window.open('https://t.me/SectorX7', '_blank')}>ПОДПИСАТЬСЯ</button>
+             <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={() => window.location.reload()}>Я ПОДПИСАЛСЯ</button>
+          </div>
+        </div>
+      )}
+
+      {showForceRevealModal && (
+        <div className="modal-overlay" style={{ zIndex: 8000, background: 'rgba(150, 0, 0, 0.4)' }}>
+          <div className="menu-box" style={{ width: '90%', maxWidth: '380px', textAlign: 'center', border: '2px solid var(--danger)' }}>
+             <div style={{ fontSize: '4rem', marginBottom: '16px', animation: 'pulse 1s infinite' }}>⏲️</div>
+             <h2 className="screen-title" style={{ color: 'var(--danger)' }}>ВРЕМЯ ВЫШЛО!</h2>
+             <p style={{ marginBottom: '24px', fontWeight: 'bold' }}>
+               Вы не успели вскрыть карту вовремя. Сделайте это прямо сейчас, чтобы продолжить игру!
+             </p>
+             <button className="btn-primary" onClick={() => { setShowForceRevealModal(false); setIsSelfDossierOpen(true); }}>
+               ОТКРЫТЬ ДОСЬЕ
+             </button>
           </div>
         </div>
       )}
