@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sector X Trailer</title>
+    <style>
+        :root {
+            --primary: #d48a56;
+            --danger: #ff4d4d;
+            --bg: #0a0a0a;
+        }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--bg); color: #fff; overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .container {
+            position: relative; width: 100vw; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .scene {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; visibility: hidden;
+            transition: opacity 1s ease-in-out;
+        }
+        .scene.active {
+            opacity: 1; visibility: visible;
+        }
+        .bg-img {
+            width: 100%; height: 100%; object-fit: cover;
+            animation: kenBurns 15s linear infinite;
+            filter: brightness(0.6);
+        }
+        @keyframes kenBurns {
+            from { transform: scale(1); }
+            to { transform: scale(1.15) translate(2% 2%); }
+        }
+        .text-overlay {
+            position: absolute; width: 80%; text-align: center;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        .title {
+            font-size: 3rem; font-weight: 900; letter-spacing: 0.1em;
+            color: var(--danger); text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 77, 77, 0.8);
+            margin-bottom: 20px;
+            animation: glitch 1s infinite;
+        }
+        .subtitle {
+            font-size: 1.5rem; font-weight: 600; text-transform: uppercase;
+            background: rgba(0,0,0,0.6); padding: 10px 20px;
+            border-left: 5px solid var(--primary);
+            animation: slideIn 0.8s ease-out forwards; opacity: 0;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes glitch {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(10deg); filter: hue-rotate(90deg); }
+            21% { transform: skew(-10deg); filter: hue-rotate(0deg); }
+            100% { transform: skew(0deg); }
+        }
+        .logo-scene .title { color: var(--primary); text-shadow: 0 0 20px var(--primary); }
+        .cta-btn {
+            margin-top: 30px; padding: 15px 40px; 
+            background: var(--primary); color: #000;
+            font-weight: 800; text-transform: uppercase; border: none;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Timeline Sequences */
+        #scene-1 .subtitle { animation-delay: 0.5s; }
+        #scene-2 .subtitle { animation-delay: 3.5s; }
+        #scene-3 .subtitle { animation-delay: 6.5s; }
+        #scene-4 .subtitle { animation-delay: 9.5s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Scene 1: Dark Intro -->
+        <div id="scene-1" class="scene active" style="background: black; display: flex; flex-direction: column;">
+            <div class="text-overlay">
+                <div class="title">SECTOR X</div>
+                <div class="subtitle">СИСТЕМА ОБНАРУЖЕНА...</div>
+            </div>
+        </div>
+
+        <!-- Scene 2: Bunker Entrance -->
+        <div id="scene-2" class="scene">
+            <img class="bg-img" src="../promo_frame_1_bunker_entrance_1776287957904.png">
+            <div class="text-overlay">
+                <div class="subtitle">МИР УЖЕ НЕ БУДЕТ ПРЕЖНИМ</div>
+            </div>
+        </div>
+
+        <!-- Scene 3: Wasteland -->
+        <div id="scene-3" class="scene">
+            <img class="bg-img" src="../promo_frame_2_wasteland_survivors_vert_1776287983373.png">
+            <div class="text-overlay">
+                <div class="subtitle">ВЫЖИВУТ НЕ ВСЕ.</div>
+            </div>
+        </div>
+
+        <!-- Scene 4: Final Logo -->
+        <div id="scene-4" class="scene logo-scene">
+            <img class="bg-img" src="../promo_frame_3_tech_terminal_vert_1776288006074.png">
+            <div class="text-overlay">
+                <div class="title">SECTOR X</div>
+                <div class="subtitle">ТВОЙ ШАНС НА ЖИЗНЬ</div>
+                <button class="cta-btn">ИГРАТЬ В TELEGRAM</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scenes = document.querySelectorAll('.scene');
+        let current = 0;
+        
+        function nextScene() {
+            scenes[current].classList.remove('active');
+            current = (current + 1) % scenes.length;
+            scenes[current].classList.add('active');
+        }
+
+        // 15 seconds total / 4 scenes = approx 3.75s per scene
+        setInterval(nextScene, 3750);
+    </script>
+</body>
+</html>
