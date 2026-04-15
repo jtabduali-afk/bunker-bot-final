@@ -903,7 +903,7 @@ function App() {
              <p style={{ marginBottom: '24px', lineHeight: '1.5' }}>
                Для участия в игре необходимо подписаться на наш Telegram канал. Это помогает нам развивать проект!
              </p>
-              <button className="btn-primary" onClick={() => window.open('https://t.me/SectorX7', '_blank')}>ПОДПИСАТЬСЯ</button>
+              <button className="btn-primary" onClick={() => window.Telegram?.WebApp?.openTelegramLink('https://t.me/SectorX7')}>ПОДПИСАТЬСЯ</button>
               <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={handleRecheckSubscription}>Я ПОДПИСАЛСЯ</button>
               
               {subError && (
