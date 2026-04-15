@@ -128,17 +128,35 @@ app.get('/api/health', (req, res) => {
 });
 
 // Работа с Web App через WebSockets в реальном времени
+const checkSubscription = async (userId) => {
+    try {
+        // Проверяем подписку на канал @SectorX7
+        const member = await bot.telegram.getChatMember('@SectorX7', userId);
+        const allowedStatuses = ['member', 'administrator', 'creator'];
+        return allowedStatuses.includes(member.status);
+    } catch (error) {
+        console.error('Ошибка проверки подписки:', error.message);
+        return false; // По умолчанию считаем, что не подписан, если ошибка
+    }
+};
+
 io.on('connection', (socket) => {
     console.log('🟢 Web App подключился:', socket.id);
 
     // Обработка создания новой комнаты
-    socket.on('create_room', (data, callback) => {
-        const { playerId, playerName } = data;
+    socket.on('create_room', async (data, callback) => {
+        const { playerId, playerName, photoUrl } = data;
+        
+        const isSubscribed = await checkSubscription(playerId);
+        if (!isSubscribed) {
+            socket.emit('error', { type: 'SUBSCRIPTION_REQUIRED', message: 'Для игры необходимо подписаться на наш канал @SectorX7' });
+            return;
+        }
+
         const roomId = gameManager.createRoom(playerId);
         const room = gameManager.getRoom(roomId);
         
-        // Создатель заходит первым
-        room.join({ id: playerId, name: playerName, socketId: socket.id });
+        room.join({ id: playerId, name: playerName, socketId: socket.id, photoUrl });
         socket.join(roomId);
         
         console.log(`Комната ${roomId} создана: ${playerName} (${playerId})`);
@@ -146,16 +164,22 @@ io.on('connection', (socket) => {
     });
 
     // Обработка подключения игрока к комнате из фронтенда
-    socket.on('join_room', (data) => {
-        const { roomId, playerId, playerName } = data;
+    socket.on('join_room', async (data) => {
+        const { roomId, playerId, playerName, photoUrl } = data;
+        
+        const isSubscribed = await checkSubscription(playerId);
+        if (!isSubscribed) {
+            socket.emit('error', { type: 'SUBSCRIPTION_REQUIRED', message: 'Для игры необходимо подписаться на наш канал @SectorX7' });
+            return;
+        }
+
         const room = gameManager.getRoom(roomId);
         
         if (room) {
-            room.join({ id: playerId, name: playerName, socketId: socket.id });
-            socket.join(roomId); // Добавляем сокет в комнату socket.io
+            room.join({ id: playerId, name: playerName, socketId: socket.id, photoUrl });
+            socket.join(roomId);
             console.log(`Игрок ${playerName} зашел в комнату ${roomId}`);
             
-            // Рассылаем всем в комнате актуальный список игроков
             io.to(roomId).emit('room_update', { players: room.players });
         } else {
             socket.emit('error', { message: 'Комната не найдена!' });
@@ -199,18 +223,30 @@ io.on('connection', (socket) => {
         if (room) {
             const p = room.players.find(x => x.id === playerId);
             if (p && p.character) {
+                // Прямой переход к следующему ходу если это принудительное вскрытие
+                const isForcedReveal = !room.state.hasRevealedInTurn && !room.state.timeoutRef && room.state.phase === 'SPEAKING' && room.state.currentSpeakerId === playerId;
+
                 p.revealedCards.push({
                      key: cardKey,
                      value: p.character[cardKey]
                 });
+                
+                room.state.hasRevealedInTurn = true;
+
                 io.to(roomId).emit('room_update', { players: room.players, bunkerCondition: room.state.bunkerCondition });
+                
                 // Эмиттим событие для Spotlight-анимации на фронтенде
                 io.to(roomId).emit('card_revealed', { 
                      playerId: p.id, 
                      playerName: p.name,
                      cardKey, 
-                     value: p.character[cardKey] 
+                     cardValue: p.character[cardKey]
                 });
+
+                if (isForcedReveal) {
+                    console.log(`[Room ${roomId}] Вскрытие после таймера - переход хода.`);
+                    room.nextTurn(io);
+                }
             }
         }
     });
