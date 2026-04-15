@@ -461,12 +461,34 @@ h2.screen-title::after, h2.screen-title::before {
   top: 8px;
   right: 8px;
   background: var(--primary);
-  color: var(--text-dark);
-  font-size: 0.65rem;
+  color: var(--bg-main);
+  font-size: 0.5rem;
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 20px;
-  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.recommended-pill {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  z-index: 2;
+  animation: pulse-small 2s infinite;
+}
+
+@keyframes pulse-small {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 138, 86, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(212, 138, 86, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 138, 86, 0.4); }
 }
 
 .floating-sound-btn {
