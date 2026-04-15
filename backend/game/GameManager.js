@@ -56,7 +56,8 @@ class Room {
             bunkerCondition: null,
             readyPlayers: new Set(),
             introTimeoutRef: null,
-            hasRevealedInTurn: false
+            hasRevealedInTurn: false,
+            messages: [] // История чата
         };
     }
 
@@ -164,8 +165,19 @@ class Room {
         io.to(this.id).emit('turn_update', {
             activeSpeakerId: activePlayer.id,
             round: this.state.round,
+            phase: this.state.phase,
             timeLimit: timeLimit,
             isTieBreaker: false
+        });
+
+        // Отправляем полное обновление комнаты для синхронизации
+        io.to(this.id).emit('room_update', { 
+            players: this.players, 
+            bunkerCondition: this.state.bunkerCondition,
+            phase: this.state.phase,
+            round: this.state.round,
+            activeSpeakerId: activePlayer.id,
+            messages: this.state.messages
         });
 
         console.log(`Ход ${activePlayer.name} (Раунд ${this.state.round})`);
