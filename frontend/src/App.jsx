@@ -96,6 +96,8 @@ function App() {
   const [playerPhoto, setPlayerPhoto] = useState(null);
   const [subError, setSubError] = useState('');
   const [lastAttempt, setLastAttempt] = useState(null); // { type: 'CREATE' } или { type: 'JOIN', roomId: '...' }
+  const [messages, setMessages] = useState([]);
+  const [revealNotif, setRevealNotif] = useState(null); // { playerName, label, value }
   
   // Speeches
   const [speechText, setSpeechText] = useState('');
@@ -150,11 +152,13 @@ function App() {
     });
 
     newSocket.on('room_update', (data) => {
-        setPlayers(data.players);
-        if (data.bunkerCondition) {
-            setBunkerCondition(data.bunkerCondition);
-        }
-        // Если мы успешно получили обновление комнаты, значит мы внутри - закрываем модалку подписки
+        if (data.players) setPlayers(data.players);
+        if (data.bunkerCondition) setBunkerCondition(data.bunkerCondition);
+        if (data.phase) setGamePhase(data.phase);
+        if (data.round != null) setRound(data.round);
+        if (data.activeSpeakerId) setActiveSpeakerId(data.activeSpeakerId);
+        if (data.messages) setMessages(data.messages);
+        
         setShowSubscriptionModal(false);
         setSubError('');
     });
@@ -165,6 +169,23 @@ function App() {
             setSubError(data.isRetry ? 'Вы всё еще не подписаны на канал @SectorX7' : '');
         } else {
             alert("Ошибка: " + data.message);
+        }
+    });
+
+    newSocket.on('card_revealed', (data) => {
+        // Показываем компактное уведомление о вскрытии
+        setRevealNotif({
+            playerName: data.playerName,
+            label: LABELS[data.cardKey],
+            value: data.cardValue
+        });
+        
+        // Автоматически скрываем через 4 секунды
+        setTimeout(() => setRevealNotif(null), 4000);
+        
+        if (data.playerId === currentId) {
+            setHasRevealedThisRound(true);
+            setActiveCardKey(null); // Закрываем большое окно если оно было открыто
         }
     });
 
@@ -207,14 +228,6 @@ function App() {
     newSocket.on('player_eliminated', (data) => {
         setEliminatedPlayerInfo(data);
         setTimeout(() => setEliminatedPlayerInfo(null), 5000); // Убираем кровавый экран через 5 сек
-    });
-
-    newSocket.on('card_revealed', (data) => {
-        setSpotlightCard(data);
-        setSpotlightMinimized(false);
-        if (data.playerId === currentId) {
-            setShowForceRevealModal(false);
-        }
     });
 
     newSocket.on('your_cards', (data) => {
@@ -351,7 +364,29 @@ function App() {
   const handleSendSpeech = () => {
       if (!speechText.trim()) return;
       socket.emit('send_speech', { roomId, playerId, text: speechText });
-      setSpeechText('');
+      setSpeechText(''); // Очищаем поле
+  };
+
+  const PROFESSION_ICONS = {
+    "Программист": "💻", "хирург": "💉", "сантехник": "🔧", "Агроном": "🌱", "Маньяк": "🔪",
+    "тренер": "💪", "полицейский": "👮", "Политик": "🎤", "Священник": "🙏", "Учитель": "🔨",
+    "Пилот": "🧑‍✈️", "Выживальщик": "🏕️", "Химик": "🧪", "Снайпер": "🎯", "Электрик": "⚡",
+    "Повар": "👨‍🍳", "Психотерапевт": "🛋️", "Таролог": "🔮", "Тиктокер": "📱", "ноготочкам": "💅",
+    "Патологоанатом": "🔬", "Курьер": "📦", "Депутат": "📜", "Маляр": "🖌️", "Ветеринар": "🐾",
+    "Дрессировщик": "🦁", "Инженер": "🏗️", "Аниматор": "🤡", "Тату": "🎨"
+  };
+
+  const getAvatar = (p) => {
+      if (p.photoUrl) return <img src={p.photoUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />;
+      
+      const profCard = p.revealedCards?.find(c => c.key === 'profession');
+      if (profCard) {
+          const val = typeof profCard.value === 'string' ? profCard.value : profCard.value.text;
+          for (const [key, icon] of Object.entries(PROFESSION_ICONS)) {
+              if (val.toLowerCase().includes(key.toLowerCase())) return <span style={{ fontSize: '1.5rem' }}>{icon}</span>;
+          }
+      }
+      return <span style={{ fontSize: '1.5rem' }}>☢️</span>;
   };
 
   const handlePlayerReady = () => {
@@ -536,7 +571,7 @@ function App() {
                       onClick={() => handlePlayerClick(p)}
                       style={{ cursor: (!p.isAlive || (gamePhase === 'VOTING' && !votingAllowedTargets.includes(p.id))) ? 'not-allowed' : 'pointer' }}
                    >
-                      <div className="player-avatar">{!p.isAlive ? '💀' : '👥'}</div>
+                      <div className="player-avatar">{getAvatar(p)}</div>
                       <div className="player-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
                       <div className="player-status">
                           {!p.isAlive ? 'ИЗГНАН' : p.id === activeSpeakerId ? 'ГОВОРИТ...' : 'ОЖИДАНИЕ'}
@@ -549,6 +584,32 @@ function App() {
                  );
              })}
          </div>
+
+         <div className="chat-container" style={{ 
+              marginTop: '24px', 
+              background: 'rgba(0,0,0,0.3)', 
+              borderRadius: '16px', 
+              border: '1px solid var(--glass-border)',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              textAlign: 'left'
+          }}>
+              {messages.length === 0 ? (
+                  <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', textAlign: 'center', fontStyle: 'italic' }}>Лог событий пуст...</div>
+              ) : (
+                  messages.map((m, i) => (
+                      <div key={i} style={{ fontSize: '0.9rem', lineHeight: '1.4', animation: 'fadeIn 0.3s ease-out' }}>
+                          <span style={{ color: m.senderId === playerId ? 'var(--primary)' : 'var(--accent)', fontWeight: '700' }}>{m.senderName}: </span>
+                          <span style={{ color: 'var(--text-main)' }}>{m.text}</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginLeft: '8px' }}>{m.timestamp}</span>
+                      </div>
+                  ))
+              )}
+          </div>
 
          <div className="menu-box" style={{ marginTop: '24px', padding: '24px', textAlign: 'center', border: '1px solid var(--primary-glow)' }}>
              {gamePhase === 'VOTING' ? (
@@ -685,6 +746,25 @@ function App() {
       {screen === 'LOBBY' && renderLobby()}
       {screen === 'GAME' && renderGame()}
       {screen === 'GAME_OVER_SCREEN' && renderGameOver()}
+
+      {revealNotif && (
+           <div className="modal-overlay" style={{ zIndex: 9000, background: 'transparent', pointerEvents: 'none' }}>
+               <div className="menu-box" style={{ 
+                   maxWidth: '400px', 
+                   border: '2px solid var(--primary)', 
+                   boxShadow: '0 0 30px var(--primary-glow)',
+                   animation: 'scaleUp 0.3s ease-out',
+                   pointerEvents: 'auto'
+               }}>
+                   <h3 style={{ color: 'var(--primary)', fontSize: '0.9rem', textTransform: 'uppercase', marginBottom: '8px' }}>КАРТА ВСКРЫТА: {revealNotif.playerName}</h3>
+                   <div style={{ color: 'var(--accent)', fontWeight: '800', fontSize: '1.2rem', marginBottom: '12px' }}>{revealNotif.label}</div>
+                   <div style={{ fontSize: '1rem', lineHeight: '1.5' }}>
+                       {typeof revealNotif.value === 'object' ? `${revealNotif.value.gender}, ${revealNotif.value.age} лет. ${revealNotif.value.text}` : revealNotif.value}
+                   </div>
+                   <button className="btn-secondary" style={{ marginTop: '20px', padding: '8px' }} onClick={() => setRevealNotif(null)}>ПОНЯТНО</button>
+               </div>
+           </div>
+       )}
 
       {activeCard && (
         <div className="modal-overlay" style={{ zIndex: 3000 }} onClick={() => setActiveCardKey(null)}>
