@@ -58,6 +58,9 @@ const io = new Server(server, {
 
 const gameManager = new GameManager();
 
+// Запуск автоматической очистки неактивных комнат
+gameManager.startCleanupTask(io);
+
 // Инициализация Telegram Бота
 setupBot(gameManager);
 
@@ -165,6 +168,7 @@ io.on('connection', (socket) => {
 
         const roomId = gameManager.createRoom(playerId);
         const room = gameManager.getRoom(roomId);
+        room.updateActivity(); // Обновляем активность
         
         room.join({ id: playerId, name: playerName, socketId: socket.id, photoUrl });
         socket.join(roomId);
@@ -193,6 +197,7 @@ io.on('connection', (socket) => {
         const room = gameManager.getRoom(roomId);
         
         if (room) {
+            room.updateActivity(); // Обновляем активность
             room.join({ id: playerId, name: playerName, socketId: socket.id, photoUrl });
             socket.join(roomId);
             console.log(`Игрок ${playerName} зашел в комнату ${roomId}`);
@@ -276,6 +281,7 @@ io.on('connection', (socket) => {
         const { roomId, playerId, cardKey } = data;
         const room = gameManager.getRoom(roomId);
         if (room) {
+            room.updateActivity();
             const p = room.players.find(x => x.id === playerId);
             if (p && p.character) {
                 // Прямой переход к следующему ходу если это принудительное вскрытие
@@ -332,6 +338,7 @@ io.on('connection', (socket) => {
         const { roomId, playerId, text } = data;
         const room = gameManager.getRoom(roomId);
         if (room) {
+            room.updateActivity();
             const speaker = room.players.find(p => p.id === playerId);
             if (speaker) {
                 const message = {
@@ -390,6 +397,12 @@ io.on('connection', (socket) => {
                 io.to(roomId).emit('room_update', { players: room.players });
             }
         }
+    });
+
+    // Выход из комнаты
+    socket.on('leave_room', (data) => {
+        const { playerId } = data;
+        gameManager.removePlayerFromAllRooms(playerId, io);
     });
 
     socket.on('disconnect', () => {
