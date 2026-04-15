@@ -131,12 +131,18 @@ function App() {
 
     newSocket.on('connect', () => {
         setIsConnected(true);
-        if (startParam) {
-            const photo = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url;
-            newSocket.emit('join_room', { roomId: startParam, playerId: currentId, playerName: currentName, photoUrl: photo });
-            setRoomId(startParam);
-            setScreen('LOBBY');
-        }
+        // Проверяем, нет ли у нас активной сессии в какой-то комнате
+        newSocket.emit('check_session', { playerId: currentId }, (session) => {
+            if (session) {
+                setRoomId(session.roomId);
+                setScreen(session.screen);
+            } else if (startParam) {
+                const photo = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url;
+                newSocket.emit('join_room', { roomId: startParam, playerId: currentId, playerName: currentName, photoUrl: photo });
+                setRoomId(startParam);
+                setScreen('LOBBY');
+            }
+        });
     });
 
     newSocket.on('disconnect', () => {
@@ -314,6 +320,7 @@ function App() {
     setRoomId(joinCode);
     setScreen('LOBBY');
     setShowJoinModal(false);
+    setJoinCode(''); // Очищаем поле после входа
   };
 
   const handleRecheckSubscription = () => {
@@ -747,7 +754,7 @@ function App() {
       )}
 
       {isSelfDossierOpen && cards && (
-        <div className="modal-overlay" onClick={() => setIsSelfDossierOpen(false)} style={{ zIndex: 1500 }}>
+        <div className="modal-overlay" style={{ zIndex: 1500 }}>
           <div className="menu-box" style={{ maxWidth: '440px', padding: '32px 24px', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h2 className="screen-title" style={{ borderBottom: 'none', marginBottom: '0' }}>ВАШЕ ДОСЬЕ</h2>
@@ -903,7 +910,10 @@ function App() {
              <p style={{ marginBottom: '24px', lineHeight: '1.5' }}>
                Для участия в игре необходимо подписаться на наш Telegram канал. Это помогает нам развивать проект!
              </p>
-              <button className="btn-primary" onClick={() => window.Telegram?.WebApp?.openTelegramLink('https://t.me/SectorX7')}>ПОДПИСАТЬСЯ</button>
+              <button className="btn-primary" onClick={() => {
+                   window.Telegram?.WebApp?.expand();
+                   window.Telegram?.WebApp?.openTelegramLink('tg://resolve?domain=SectorX7');
+               }}>ПОДПИСАТЬСЯ</button>
               <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={handleRecheckSubscription}>Я ПОДПИСАЛСЯ</button>
               
               {subError && (
