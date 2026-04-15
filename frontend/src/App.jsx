@@ -1103,21 +1103,6 @@ function App() {
       )}
 
       <AnimatePresence>
-        {incomingSpeech && (
-            <motion.div 
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="speech-bubble-master"
-            >
-                <div style={{ color: 'var(--c-yellow)', fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '5px' }}>
-                    {incomingSpeech.playerName.toUpperCase()} ГОВОРИТ:
-                </div>
-                <div style={{ color: '#fff', fontSize: '1.1rem', fontStyle: 'italic' }}>
-                    «{incomingSpeech.text}»
-                </div>
-            </motion.div>
-        )}
       </AnimatePresence>
 
     </div>
