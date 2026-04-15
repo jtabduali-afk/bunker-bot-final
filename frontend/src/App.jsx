@@ -159,6 +159,11 @@ function App() {
         if (data.activeSpeakerId) setActiveSpeakerId(data.activeSpeakerId);
         if (data.messages) setMessages(data.messages);
         
+        // Синхронизируем состояние вскрытия карты для текущего игрока
+        if (data.activeSpeakerId === currentId && data.hasRevealedInTurn !== undefined) {
+            setHasRevealedThisRound(data.hasRevealedInTurn);
+        }
+        
         setShowSubscriptionModal(false);
         setSubError('');
     });
@@ -651,15 +656,11 @@ function App() {
                   </button>
                 </>
              ) : (
-               <>
-                 <h4 style={{ marginBottom: '8px', color: 'var(--text-dim)', letterSpacing: '0.05em' }}>СЕЙЧАС ГОВОРИТ:</h4>
-                 <div style={{ fontSize: '1.2rem', color: 'var(--primary)', fontWeight: '700', marginBottom: '8px' }}>
-                    {players.find(p => p.id === activeSpeakerId)?.name || '...'}
-                 </div>
-                 <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', maxWidth: '280px', margin: '0 auto' }}>
-                    {gamePhase === 'TIE_BREAKER' ? 'Игрок пытается убедить остальных оставить его в бункере.' : 'Внимательно слушайте аргументы и следите за вскрытыми картами.'}
-                 </p>
-               </>
+                <div style={{ padding: '20px 0' }}>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
+                    Слушайте выступление {players.find(p => p.id === activeSpeakerId)?.name || 'соперника'} и следите за логом чата.
+                  </p>
+                </div>
              )}
          </div>
       </div>
@@ -726,9 +727,6 @@ function App() {
   return (
     <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
       <audio ref={audioRef} src="/bg.mp3" loop />
-      <button className="floating-sound-btn" onClick={() => setVolume(volume > 0 ? 0 : 0.2)} aria-label="Toggle Sound">
-         {volume > 0 ? '🔊' : '🔇'}
-      </button>
 
       <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>Sector X</h1>
       <div style={{ 
@@ -835,7 +833,8 @@ function App() {
 
       {isSelfDossierOpen && cards && (
         <div className="modal-overlay" style={{ zIndex: 1500 }}>
-          <div className="menu-box" style={{ maxWidth: '440px', padding: '32px 24px', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <div className="menu-box" style={{ maxWidth: '440px', padding: '32px 24px', maxHeight: '85vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
+             <button className="close-modal-btn" onClick={() => setIsSelfDossierOpen(false)} style={{ position: 'absolute', top: '15px', right: '15px', fontSize: '2rem', background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>
              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h2 className="screen-title" style={{ borderBottom: 'none', marginBottom: '0' }}>ВАШЕ ДОСЬЕ</h2>
              </div>
