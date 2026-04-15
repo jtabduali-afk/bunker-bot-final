@@ -356,20 +356,20 @@ function App() {
   };
 
   const renderMenu = () => (
-    <div className="menu-box text-center">
-      <div className="menu-icon-wrapper">
+    <div className="menu-box">
+      <div style={{ textAlign: "center", marginBottom: "32px" }}>
         <img 
           src="https://cdn-icons-png.flaticon.com/512/8664/8664790.png" 
           alt="Gas Mask" 
-          className="gas-mask-img"
+          style={{ width: "100px", opacity: 0.8, filter: "sepia(0.5) hue-rotate(60deg) brightness(0.9)" }} 
         />
       </div>
       <h2 className="screen-title">ГЛАВНОЕ МЕНЮ</h2>
-      <div className="nickname-display">
-          <span>Ваш ник: </span>
-          <strong className="text-highlight">{playerName}</strong>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <span style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>Ваш ник: </span>
+          <strong style={{ color: 'var(--primary)', fontWeight: '700' }}>{playerName}</strong>
           <button 
-            className="link-btn"
+            style={{ marginLeft: '12px', background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
             onClick={() => { setTempPlayerName(playerName); setShowNameModal(true); }}
           >
             Изменить
@@ -377,7 +377,7 @@ function App() {
       </div>
       <button className="btn-primary" onClick={moveToLobby}>СОЗДАТЬ ИГРУ</button>
       <button className="btn-secondary" onClick={() => setShowJoinModal(true)}>ПРИСОЕДИНИТЬСЯ</button>
-      <button className="btn-secondary btn-muted">ПРАВИЛА ИГРЫ</button>
+      <button className="btn-secondary" style={{ opacity: 0.6 }} onClick={() => alert('Правила в разработке')}>ПРАВИЛА ИГРЫ</button>
     </div>
   );
 
@@ -385,19 +385,24 @@ function App() {
     <div className="menu-box">
       <h2 className="screen-title">ЖДЕМ ВЫЖИВШИХ</h2>
       <div className="room-code-display">{roomId}</div>
-      <p className="description-text">Код вашей комнаты. Скиньте его друзьям!</p>
+      <p style={{ textAlign: 'center', marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-dim)' }}>
+        Код вашей комнаты. Скиньте его друзьям для подключения.
+      </p>
       <ul className="player-list">
         {players.map(p => (
-           <li key={p.id} className={p.id === playerId ? 'current-player' : ''}>
-              <span>{p.name} {p.id === playerId && '(Вы)'} {p.id === players[0]?.id && '👑'}</span>
-              {p.id === playerId && (
-                  <button 
-                    className="icon-btn-text"
+           <li key={p.id}>
+             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {p.id === players[0]?.id ? '🛡️' : '👤'}
+                <span>{p.name} {p.id === playerId && '(Вы)'}</span>
+             </span>
+             {p.id === playerId && (
+                 <button 
+                    style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' }}
                     onClick={() => { setTempPlayerName(p.name); setShowNameModal(true); }}
-                  >
-                    [ред.]
-                  </button>
-              )}
+                 >
+                    ИЗМЕНИТЬ
+                 </button>
+             )}
            </li>
         ))}
       </ul>
@@ -406,30 +411,30 @@ function App() {
              if (socket) socket.emit('start_game', { roomId });
          }}>НАЧАТЬ СПУСК</button>
       )}
-      <button className="btn-danger" onClick={() => setScreen('MENU')}>ПОКИНУТЬ ЛОББИ</button>
+      <button className="btn-danger" onClick={() => setScreen('MENU')} style={{ border: 'none', background: 'transparent', marginTop: '10px' }}>ПОКИНУТЬ ЛОББИ</button>
     </div>
   );
 
   const renderGame = () => (
     <>
       <div className="status-bar">
-        <span className="status-phase">
-           {gamePhase === 'VOTING' ? 'ФАЗА ИЗГНАНИЯ' : `РАУНД: ${round}`}
+        <span style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '1.1rem' }}>
+           {gamePhase === 'VOTING' ? 'ФАЗА ИЗГНАНИЯ' : `РАУНД ${round}`}
         </span>
         {bunkerCondition && (
            <button 
-             className="bunker-info-btn-trigger"
+             className="bunker-info-btn"
              onClick={() => setShowBunkerModal(true)}
            >
-             ☢️ БУНКЕР
+             ☢️ О БУНКЕРЕ
            </button>
         )}
-        {timeLeft > 0 && <span className="status-timer">0:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</span>}
+        {timeLeft > 0 && <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{timeLeft}s</span>}
       </div>
 
       <div className="game-table-container">
-         <h3 className={`table-title ${gamePhase === 'VOTING' ? 'danger' : ''}`}>
-            {gamePhase === 'VOTING' ? 'ВЫБЕРИТЕ ЖЕРТВУ' : 'ВСЕ ВЫЖИВШИЕ'}
+         <h3 style={{ fontSize: '1.2rem', fontWeight: '500', marginBottom: '20px', textAlign: 'center', color: gamePhase === 'VOTING' ? 'var(--danger)' : 'var(--text-dim)' }}>
+            {gamePhase === 'VOTING' ? 'ВЫБЕРИТЕ КОГО ИЗГНАТЬ' : 'СПИСОК ВЫЖИВШИХ'}
          </h3>
          
          <div className="players-grid">
@@ -444,65 +449,71 @@ function App() {
                       key={p.id} 
                       className={classNames}
                       onClick={() => handlePlayerClick(p)}
+                      style={{ cursor: (!p.isAlive || (gamePhase === 'VOTING' && !votingAllowedTargets.includes(p.id))) ? 'not-allowed' : 'pointer' }}
                    >
-                      <div className="player-avatar">{!p.isAlive ? '💀' : '👨‍⚕️'}</div>
+                      <div className="player-avatar">{!p.isAlive ? '💀' : '👥'}</div>
                       <div className="player-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
                       <div className="player-status">
-                          {!p.isAlive ? 'ИЗГНАН' : p.id === activeSpeakerId ? 'ГОВОРИТ...' : 'ЖДЕТ'}
+                          {!p.isAlive ? 'ИЗГНАН' : p.id === activeSpeakerId ? 'ГОВОРИТ...' : 'ОЖИДАНИЕ'}
                       </div>
                       
-                      <div className="revealed-count-badge">
-                          Вскрыто: {p.revealedCards ? p.revealedCards.length : 0} / 8
+                      <div className="revealed-count-badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-dim)', fontSize: '0.7rem' }}>
+                          Вскрыто: {p.revealedCards ? p.revealedCards.length : 0}
                       </div>
                    </div>
                  );
              })}
          </div>
 
-          <div className="msg-box-info">
+         <div className="menu-box" style={{ marginTop: '24px', padding: '24px', textAlign: 'center', border: '1px solid var(--primary-glow)' }}>
              {gamePhase === 'VOTING' ? (
-                 <div className="voting-msg">
-                     <h4 className="msg-title danger">ВРЕМЯ ИЗГНАНИЯ!</h4>
-                     <p className="msg-text">
-                        {votedFor 
-                            ? `Голос отдан. Ожидаем остальных...` 
-                            : (players.find(p => p.id === playerId)?.isAlive ? `Нажмите на игрока, чтобы проголосовать против него.` : 'Мертвые просто наблюдают.')}
-                     </p>
-                 </div>
+                 <>
+                    <h4 style={{ marginBottom: '12px', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>ВРЕМЯ ИЗГНАНИЯ!</h4>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', opacity: 0.8 }}>
+                       {votedFor 
+                           ? `Голос отдан. Ожидаем остальных...` 
+                           : (players.find(p => p.id === playerId)?.isAlive ? `Нажмите на карточку игрока выше, чтобы проголосовать.` : 'Вы изгнаны и не можете голосовать.')}
+                    </p>
+                 </>
              ) : activeSpeakerId === playerId ? (
-                <div className="turn-msg">
-                   <h4 className={`msg-title ${gamePhase === 'TIE_BREAKER' ? 'warning' : 'primary'}`}>
-                      {gamePhase === 'TIE_BREAKER' ? 'ЗАЩИТНАЯ РЕЧЬ!' : 'ВАШ ХОД!'}
-                   </h4>
-                   <div className="speech-controls">
-                       <textarea 
-                         className="speech-textarea" 
-                         placeholder="Введите ваше оправдание / ложь..."
-                         value={speechText}
-                         onChange={(e) => setSpeechText(e.target.value)}
-                       />
-                       <button className="btn-secondary" onClick={handleSendSpeech} disabled={!speechText.trim()}>
-                          ОТПРАВИТЬ РЕЧЬ
-                       </button>
-                   </div>
-                   <p className="msg-tip">
-                      Нажмите на <strong className="highlight">свою аватарку</strong>, чтобы вскрыть карту!
-                   </p>
-                   <button 
-                     className="btn-primary" 
-                     onClick={() => socket.emit('end_turn', { roomId, playerId })}
-                     disabled={!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER'}
-                   >
-                     {(hasRevealedThisRound || gamePhase === 'TIE_BREAKER') ? 'ЗАВЕРШИТЬ ХОД' : 'СНАЧАЛА ВСКРОЙТЕ КАРТУ'}
-                   </button>
-                 </div>
-             ) : (
-                <div className="waiting-msg">
-                  <h4 className="msg-title muted">ОЖИДАНИЕ...</h4>
-                  <p className="msg-text muted">
-                     {gamePhase === 'TIE_BREAKER' ? 'Слушайте защитную речь!' : 'Сейчас выступает другой игрок.'}
+                <>
+                  <h4 style={{ marginBottom: '12px', color: gamePhase === 'TIE_BREAKER' ? 'var(--accent)' : 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                     {gamePhase === 'TIE_BREAKER' ? 'ВАША ЗАЩИТНАЯ РЕЧЬ' : 'ВАШ ХОД'}
+                  </h4>
+                  <div style={{ marginBottom: '20px' }}>
+                      <textarea 
+                        className="code-input" 
+                        style={{ height: '70px', fontSize: '0.95rem', padding: '12px', marginBottom: '12px', textAlign: 'left' }}
+                        placeholder="Что скажете в свое оправдание?"
+                        value={speechText}
+                        onChange={(e) => setSpeechText(e.target.value)}
+                      />
+                      <button className="btn-secondary" style={{ width: '100%', padding: '12px' }} onClick={handleSendSpeech} disabled={!speechText.trim()}>
+                         ОТПРАВИТЬ РЕЧЬ
+                      </button>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '16px' }}>
+                     Нажмите на <strong style={{ color: 'var(--primary)' }}>свою карточку</strong>, чтобы вскрыть новую характеристику.
                   </p>
-                </div>
+                  <button 
+                    className="btn-primary" 
+                    onClick={() => socket.emit('end_turn', { roomId, playerId })}
+                    disabled={!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER'}
+                    style={(!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER') ? { opacity: 0.4, cursor: 'not-allowed', filter: 'none' } : {}}
+                  >
+                    {(hasRevealedThisRound || gamePhase === 'TIE_BREAKER') ? 'ЗАВЕРШИТЬ ХОД' : 'СНАЧАЛА ВСКРОЙТЕ КАРТУ'}
+                  </button>
+                </>
+             ) : (
+               <>
+                 <h4 style={{ marginBottom: '8px', color: 'var(--text-dim)', letterSpacing: '0.05em' }}>СЕЙЧАС ГОВОРИТ:</h4>
+                 <div style={{ fontSize: '1.2rem', color: 'var(--primary)', fontWeight: '700', marginBottom: '8px' }}>
+                    {players.find(p => p.id === activeSpeakerId)?.name || '...'}
+                 </div>
+                 <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', maxWidth: '280px', margin: '0 auto' }}>
+                    {gamePhase === 'TIE_BREAKER' ? 'Игрок пытается убедить остальных оставить его в бункере.' : 'Внимательно слушайте аргументы и следите за вскрытыми картами.'}
+                 </p>
+               </>
              )}
          </div>
       </div>
@@ -510,45 +521,50 @@ function App() {
   );
 
   const renderGameOver = () => (
-    <div className="game-over-container">
-       <h1 className="game-over-title">ИГРА ОКОНЧЕНА</h1>
+    <div className="menu-box" style={{ maxWidth: '500px', animation: 'scaleUp 0.5s ease-out', margin: '20px auto', padding: '32px 24px', textAlign: 'center' }}>
+       <h1 style={{ fontSize: '2.5rem', color: 'var(--danger)', marginBottom: '8px', letterSpacing: '0.1em' }}>ИГРА ОКОНЧЕНА</h1>
        
-       <h2 className="survivors-title">ВЫЖИВШИЕ В БУНКЕРЕ:</h2>
+       <p style={{ color: 'var(--text-dim)', marginBottom: '24px', fontSize: '1rem' }}>Выжившие в Бункере:</p>
+       
        {gameOverData && gameOverData.survivors && gameOverData.survivors.length > 0 ? (
-           <div className="survivors-grid">
+           <div className="players-grid" style={{ marginBottom: '32px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                {gameOverData.survivors.map(p => (
-                   <div key={p.id} className="survivor-slot">
-                       <div className="survivor-avatar">👨‍⚕️</div>
-                       <div className="survivor-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
+                   <div key={p.id} className="player-slot" style={{ border: '1px solid var(--primary)' }}>
+                       <div className="player-avatar">👥</div>
+                       <div className="player-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
                    </div>
                ))}
            </div>
        ) : (
-           <p className="no-survivors">Никто не выжил...</p>
+           <p style={{ color: 'var(--text-dim)', fontStyle: 'italic', marginBottom: '32px' }}>Никто не выжил...</p>
        )}
 
-       <div className="verdict-box">
-           <h3 className="verdict-title">ВЕРДИКТ КОЛОНИИ</h3>
-           <p className="verdict-text">{gameOverData?.verdict}</p>
+       <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
+           <h3 style={{ color: 'var(--primary)', marginBottom: '12px', fontSize: '1.1rem', textTransform: 'uppercase' }}>ВЕРДИКТ КОЛОНИИ</h3>
+           <p style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: '1.5' }}>{gameOverData?.verdict}</p>
        </div>
 
        {gameOverData?.survivalProbability != null && (
-           <div className="survival-stats">
-               <h3 className="stats-title">ВЕРОЯТНОСТЬ ВЫЖИВАНИЯ</h3>
-               <div className="progress-container">
-                   <div 
-                      className="progress-fill"
-                      style={{ 
-                         width: `${animatedScore}%`,
-                         backgroundColor: animatedScore > 50 ? 'var(--c-sage)' : 'var(--c-rust)'
-                      }} 
-                   />
-                   <div className="progress-label">{animatedScore}%</div>
+           <div style={{ padding: '0 8px' }}>
+               <h3 style={{ color: 'var(--text-dim)', marginBottom: '16px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ВЕРОЯТНОСТЬ ВЫЖИВАНИЯ</h3>
+               <div style={{ background: 'rgba(0,0,0,0.3)', width: '100%', height: '40px', borderRadius: '20px', overflow: 'hidden', position: 'relative', border: '1px solid var(--glass-border)' }}>
+                   <div style={{
+                       width: `${animatedScore}%`,
+                       height: '100%',
+                       background: animatedScore > 50 ? 'var(--primary)' : 'var(--danger)',
+                       transition: 'width 2.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                       boxShadow: '0 0 20px rgba(0,0,0,0.3) inset'
+                   }} />
+                   <div style={{
+                       position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '1.1rem', color: '#fff'
+                   }}>
+                       {animatedScore}%
+                   </div>
                </div>
            </div>
        )}
 
-       <button className="btn-primary" style={{ marginTop: '30px' }} onClick={() => window.location.reload()}>ИГРАТЬ ЕЩЕ РАЗ</button>
+       <button className="btn-primary" style={{ marginTop: '40px' }} onClick={() => window.location.reload()}>ИГРАТЬ ЕЩЕ РАЗ</button>
     </div>
   );
 
@@ -561,8 +577,15 @@ function App() {
          {volume > 0 ? '🔊' : '🔇'}
       </button>
 
-      <h1 className="game-title">БУНКЕР</h1>
-      <div className={`connection-status ${isConnected ? 'online' : 'offline'}`}>
+      <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>БУНКЕР</h1>
+      <div style={{ 
+          color: isConnected ? '#2ecc71' : '#e74c3c', 
+          textAlign: 'center', 
+          fontWeight: 'bold',
+          fontSize: '0.8rem',
+          textShadow: '0 0 5px rgba(0,0,0,0.5)',
+          marginBottom: '20px'
+      }}>
           {isConnected ? '● СИСТЕМА ОНЛАЙН' : '○ ПОДКЛЮЧЕНИЕ ПРЕРВАНО...'}
       </div>
       
@@ -580,12 +603,12 @@ function App() {
               <div className="card-big-icon">{ICONS[activeCardKey]}</div>
               <div className="card-big-value">
                 {activeCardKey === 'biology' && typeof activeCard.value === 'object' ? (
-                   <div className="bio-card-content">
-                       <div className="bio-tags">
-                           <span className="tag-gender">Пол: {activeCard.value.gender}</span>
-                           <span className="tag-age">Возраст: {activeCard.value.age}</span>
+                   <div>
+                       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', justifyContent: 'center' }}>
+                           <span style={{ padding: '6px 16px', background: 'var(--primary)', color: 'var(--text-dark)', borderRadius: '20px', fontWeight: '700', fontSize: '0.85rem' }}>{activeCard.value.gender}</span>
+                           <span style={{ padding: '6px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', borderRadius: '20px', fontWeight: '700', fontSize: '0.85rem' }}>{activeCard.value.age} лет</span>
                        </div>
-                       <div className="bio-text">{activeCard.value.text}</div>
+                       <div style={{ fontSize: '1.1rem', lineHeight: '1.5' }}>{activeCard.value.text}</div>
                    </div>
                 ) : typeof activeCard.value === 'object' ? activeCard.value.text : activeCard.value}
               </div>
@@ -593,163 +616,170 @@ function App() {
 
             <div className="card-big-actions">
               {activeCard.isRevealed ? (
-                <button className="btn-secondary" disabled>ЭТА КАРТА УЖЕ ВСКРЫТА ДЛЯ ВСЕХ</button>
+                <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.9rem', marginBottom: '16px' }}>ЭТА КАРТА УЖЕ ВСКРЫТА ДЛЯ ВСЕХ</p>
               ) : (
                 <button 
                   className="btn-danger" 
                   onClick={() => handleRevealCard(activeCardKey)}
                   disabled={hasRevealedThisRound || playerId !== activeSpeakerId}
+                  style={hasRevealedThisRound || playerId !== activeSpeakerId ? { opacity: 0.5 } : {}}
                 >
-                  {playerId === activeSpeakerId ? 'ВСКРЫТЬ (ДЛЯ ВСЕХ)' : 'ОЖИДАЙТЕ ХОДА...'}
+                  {playerId === activeSpeakerId ? 'РАСКРЫТЬ КАРТУ 🔓' : 'ОЖИДАЙТЕ СВОЕГО ХОДА'}
                 </button>
               )}
-              <button className="btn-primary" onClick={() => setActiveCardKey(null)}>Спрятать обратно</button>
+              <button className="btn-secondary" onClick={() => setActiveCardKey(null)}>ВЕРНУТЬСЯ</button>
             </div>
           </div>
         </div>
       )}
 
       {selectedPlayer && (
-        <div className="modal-overlay" onClick={() => setSelectedPlayer(null)}>
-          <div className="menu-box" style={{ width: '95%', maxWidth: '400px', animation: 'slideUp 0.2s ease-out', padding: '20px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                <div style={{ fontSize: '4rem' }}>{!selectedPlayer.isAlive ? '💀' : '👨‍⚕️'}</div>
-                <h2 className="screen-title" style={{ fontSize: '2rem', borderBottom: 'none', marginBottom: '0', color: !selectedPlayer.isAlive ? 'var(--c-grey)' : 'var(--text-main)' }}>
-                   {selectedPlayer.name} {!selectedPlayer.isAlive && '(Мертв)'}
+        <div className="modal-overlay" style={{ zIndex: 4000 }} onClick={() => setSelectedPlayer(null)}>
+          <div className="menu-box" style={{ maxWidth: '400px', padding: '32px 24px', animation: 'scaleUp 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
+             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{ fontSize: '4rem', marginBottom: '12px', filter: 'drop-shadow(0 0 10px var(--primary-glow))' }}>{!selectedPlayer.isAlive ? '💀' : '👥'}</div>
+                <h2 style={{ fontSize: '1.8rem', color: !selectedPlayer.isAlive ? 'var(--text-dim)' : 'var(--text-main)', fontWeight: '700' }}>
+                   {selectedPlayer.name} {!selectedPlayer.isAlive && '(ИЗГНАН)'}
                 </h2>
              </div>
              
              {selectedPlayer.revealedCards && selectedPlayer.revealedCards.length > 0 ? (
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                      {selectedPlayer.revealedCards.map(c => (
-                         <div key={c.key} style={{ background: '#111', border: '2px solid var(--c-yellow)', borderRadius: '8px', padding: '10px' }}>
-                             <div style={{ color: 'var(--c-yellow)', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '4px' }}>{LABELS[c.key]}</div>
-                             <div style={{ color: 'var(--text-main)', fontSize: '1rem', lineHeight: '1.2' }}>{typeof c.value === 'object' ? `${c.value.gender}, ${c.value.age} лет. ${c.value.text}` : c.value}</div>
+                         <div key={c.key} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderLeft: '3px solid var(--primary)', borderRadius: '12px', padding: '16px' }}>
+                             <div style={{ color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '700', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{LABELS[c.key]}</div>
+                             <div style={{ color: 'var(--text-main)', fontSize: '1rem', lineHeight: '1.4' }}>{typeof c.value === 'object' ? `${c.value.gender}, ${c.value.age} лет. ${c.value.text}` : c.value}</div>
                          </div>
                      ))}
                  </div>
              ) : (
-                 <p style={{ textAlign: 'center', color: 'var(--c-grey)', fontStyle: 'italic', marginBottom: '20px' }}>Игрок еще не раскрыл ни одной тайны...</p>
+                 <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontStyle: 'italic', marginBottom: '32px', fontSize: '0.9rem' }}>Игрок еще не раскрыл ни одной характеристики...</p>
              )}
              
-             <button className="btn-primary" onClick={() => setSelectedPlayer(null)}>ЗАКРЫТЬ ДОСЬЕ</button>
+             <button className="btn-primary" onClick={() => setSelectedPlayer(null)}>ПОНЯТНО</button>
           </div>
         </div>
       )}
 
       {isSelfDossierOpen && cards && (
         <div className="modal-overlay" onClick={() => setIsSelfDossierOpen(false)} style={{ zIndex: 1500 }}>
-          <div className="menu-box" style={{ width: '95%', maxWidth: '400px', padding: '20px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                <h2 className="screen-title" style={{ borderBottom: 'none' }}>ВАШИ КАРТЫ</h2>
+          <div className="menu-box" style={{ maxWidth: '440px', padding: '32px 24px', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h2 className="screen-title" style={{ borderBottom: 'none', marginBottom: '0' }}>ВАШЕ ДОСЬЕ</h2>
              </div>
 
              {actionCardToPlay ? (
-                 <div style={{ background: '#222', border: '1px solid var(--c-yellow)', borderRadius: '8px', padding: '15px', marginBottom: '20px' }}>
-                     <h3 style={{ color: 'var(--c-yellow)' }}>ПРИМЕНЕНИЕ: {actionCardToPlay.title}</h3>
-                     <p>{actionCardToPlay.description}</p>
+                 <div style={{ background: 'rgba(212, 138, 86, 0.1)', border: '1px solid var(--accent)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+                     <h3 style={{ color: 'var(--accent)', fontSize: '1.2rem', marginBottom: '12px' }}>{actionCardToPlay.title}</h3>
+                     <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '20px', lineHeight: '1.4' }}>{actionCardToPlay.description}</p>
                      
                      {actionCardToPlay.targetType === 'PLAYER' && (
-                         <div style={{ marginTop: '15px' }}>
-                             <h4 style={{ marginBottom: '10px' }}>ВЫБЕРИТЕ ЦЕЛЬ:</h4>
-                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                 {players.filter(p => p.isAlive).map(p => (
-                                     <button key={p.id} className="btn-secondary" onClick={() => handlePlayActionCard(actionCardToPlay.id, p.id)}>
-                                         {p.name}
-                                     </button>
-                                 ))}
-                             </div>
-                         </div>
+                          <div style={{ marginTop: '20px' }}>
+                              <h4 style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>ВЫБЕРИТЕ ЦЕЛЬ:</h4>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  {players.filter(p => p.isAlive).map(p => (
+                                      <button key={p.id} className="btn-secondary" style={{ padding: '12px' }} onClick={() => handlePlayActionCard(actionCardToPlay.id, p.id)}>
+                                          {p.name} {p.id === playerId && '(СЕБЯ)'}
+                                      </button>
+                                  ))}
+                              </div>
+                          </div>
                      )}
 
                      {actionCardToPlay.targetType === 'NONE' && (
-                         <button className="btn-primary" style={{ marginTop: '15px' }} onClick={() => handlePlayActionCard(actionCardToPlay.id, null)}>
-                             ПРИМЕНИТЬ НА СЕБЯ / ЛОББИ
-                         </button>
+                          <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => handlePlayActionCard(actionCardToPlay.id, null)}>
+                              АКТИВИРОВАТЬ
+                          </button>
                      )}
 
-                     <button className="btn-danger" style={{ marginTop: '10px' }} onClick={() => setActionCardToPlay(null)}>ОТМЕНА</button>
+                     <button className="btn-danger" style={{ marginTop: '12px', background: 'transparent', border: 'none' }} onClick={() => setActionCardToPlay(null)}>ОТМЕНА</button>
                  </div>
              ) : (
                  <>
                      {actionCards.length > 0 && (
-                         <div style={{ marginBottom: '20px' }}>
-                             <h3 style={{ color: 'var(--c-red)', marginBottom: '10px' }}>СПЕЦУСЛОВИЯ (АКТИВНЫ)</h3>
-                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                 {actionCards.map(ac => (
-                                     <div key={ac.id} style={{ background: '#331111', border: '1px solid var(--c-red)', borderRadius: '8px', padding: '10px', cursor: 'pointer' }} onClick={() => setActionCardToPlay(ac)}>
-                                         <div style={{ fontWeight: 'bold', color: 'var(--c-red)' }}>{ac.title}</div>
-                                         <div style={{ fontSize: '0.8rem', color: '#ccc' }}>{ac.description}</div>
-                                         <div style={{ marginTop: '5px', color: 'var(--c-yellow)', fontSize: '0.8rem', fontWeight: 'bold' }}>НАЖМИТЕ, ЧТОБЫ РАЗЫГРАТЬ 🔥</div>
-                                     </div>
-                                 ))}
-                             </div>
-                         </div>
+                          <div style={{ marginBottom: '32px' }}>
+                              <h3 style={{ color: 'var(--accent)', fontSize: '0.9rem', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>АКТИВНЫЕ СПЕЦКАРТЫ</h3>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                  {actionCards.map(ac => (
+                                      <div key={ac.id} style={{ background: 'rgba(212, 138, 86, 0.05)', border: '1px solid var(--accent-glow)', borderRadius: '12px', padding: '16px', cursor: 'pointer', transition: 'var(--transition)' }} onClick={() => setActionCardToPlay(ac)}>
+                                          <div style={{ fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>{ac.title}</div>
+                                          <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '8px' }}>{ac.description}</div>
+                                          <div style={{ color: 'var(--text-main)', fontSize: '0.75rem', fontWeight: '800' }}>ИСПОЛЬЗОВАТЬ →</div>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
                      )}
 
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
-                {Object.entries(cards).map(([key, card]) => (
-                   <div 
-                      key={key} 
-                      className={`card-mini ${THEMES[key]} ${card.isRevealed ? 'revealed' : ''}`}
-                      onClick={() => setActiveCardKey(key)}
-                      style={{ height: '180px' }}
-                   >
-                      {card.isRevealed && <div className="revealed-badge">ВСКРЫТО</div>}
-                      <div className="card-mini-header" style={{ fontSize: '1.2rem' }}>{LABELS[key]}</div>
-                      <div className="card-mini-body" style={{ fontSize: '2.5rem' }}>{ICONS[key]}</div>
-                   </div>
-                ))}
-             </div>
-             </>
+                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                        {Object.entries(cards).map(([key, card]) => (
+                           <div 
+                              key={key} 
+                              className={`card-mini ${THEMES[key]} ${card.isRevealed ? 'revealed' : ''}`}
+                              onClick={() => setActiveCardKey(key)}
+                              style={{ height: '160px' }}
+                           >
+                              {card.isRevealed && <div className="revealed-badge">ВСКРЫТО</div>}
+                              <div className="card-mini-header" style={{ fontSize: '0.7rem' }}>{LABELS[key]}</div>
+                              <div className="card-mini-body" style={{ fontSize: '2rem' }}>{ICONS[key]}</div>
+                              <div className="card-mini-footer" style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
+                                  {card.isRevealed ? 'ИЗВЕСТНО ВСЕМ' : 'СКРЫТО'}
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                 </>
              )}
-             <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => { setIsSelfDossierOpen(false); setActionCardToPlay(null); }}>ЗАКРЫТЬ ДОСЬЕ</button>
+             <button className="btn-primary" style={{ marginTop: '32px' }} onClick={() => { setIsSelfDossierOpen(false); setActionCardToPlay(null); }}>ЗАКРЫТЬ</button>
           </div>
         </div>
       )}
 
       {showBunkerModal && bunkerCondition && (
-        <div className="modal-overlay spotlight" onClick={() => setShowBunkerModal(false)}>
-           <div className="menu-box bunker-modal" onClick={e => e.stopPropagation()}>
-               <div className="bunker-icon">☢️</div>
-               <h2 className="screen-title danger">ВВОДНАЯ СВОДКА</h2>
+        <div className="modal-overlay" style={{ zIndex: 3500 }} onClick={() => setShowBunkerModal(false)}>
+           <div className="menu-box" style={{ maxWidth: '440px', padding: '32px 24px' }} onClick={e => e.stopPropagation()}>
+               <div style={{ fontSize: '4rem', textAlign: 'center', marginBottom: '12px' }}>☢️</div>
+               <h2 className="screen-title" style={{ fontSize: '2rem', color: 'var(--danger)', borderBottom: 'none', marginBottom: '24px' }}>СВОДКА УБЕЖИЩА</h2>
                
-               <div className="bunker-section">
-                   <h3 className="section-title">КАТАСТРОФА: {bunkerCondition.catastropheTitle.toUpperCase()}</h3>
-                   <p className="section-text">{bunkerCondition.catastropheDescription}</p>
+               <div className="bunker-section" style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--glass-border)', marginBottom: '12px' }}>
+                   <h3 style={{ color: 'var(--primary)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '8px' }}>КАТАСТРОФА: {bunkerCondition.catastropheTitle.toUpperCase()}</h3>
+                   <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{bunkerCondition.catastropheDescription}</p>
                </div>
                
-               <div className="bunker-section">
-                   <h3 className="section-title">ВРЕМЯ ПРЕБЫВАНИЯ</h3>
-                   <p className="section-valuehighlight">{bunkerCondition.timeInside} ЛЕТ</p>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+                       <h3 style={{ color: 'var(--primary)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '8px' }}>В БУНКЕРЕ:</h3>
+                       <p style={{ color: 'var(--accent)', fontSize: '1.4rem', fontWeight: '800' }}>{bunkerCondition.timeInside} ЛЕТ</p>
+                   </div>
+                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+                       <h3 style={{ color: 'var(--primary)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '8px' }}>МЕСТ:</h3>
+                       <p style={{ color: 'var(--danger)', fontSize: '1.4rem', fontWeight: '800' }}>{bunkerCondition.capacity}</p>
+                   </div>
                </div>
 
-               <div className="bunker-section">
-                   <h3 className="section-title">ОСОБЕННОСТЬ БУНКЕРА: {bunkerCondition.perkTitle}</h3>
-                   <p className="section-text">{bunkerCondition.perkDescription}</p>
+               <div className="bunker-section" style={{ background: 'rgba(141, 163, 126, 0.05)', padding: '16px', borderRadius: '12px', border: '1px solid var(--primary-glow)', marginBottom: '24px' }}>
+                   <h3 style={{ color: 'var(--primary)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '8px' }}>ОСОБЕННОСТЬ: {bunkerCondition.perkTitle}</h3>
+                   <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{bunkerCondition.perkDescription}</p>
                </div>
 
-               <div className="bunker-capacity-box">
-                   <h3 className="capacity-title">ВМЕСТИМОСТЬ УБЕЖИЩА</h3>
-                   <p className="capacity-text">
-                       Живых: {players.filter(p=>p.isAlive).length} / Мест: <strong className="highlight">{bunkerCondition.capacity}</strong>
-                   </p>
-               </div>
+               <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '24px' }}>
+                  Для победы в бункере должно остаться не более {bunkerCondition.capacity} человек.
+               </p>
 
-               <button className="btn-primary" onClick={() => setShowBunkerModal(false)}>Я ПОНЯЛ, ВЫЖИВАЕМ</button>
+               <button className="btn-primary" onClick={() => setShowBunkerModal(false)}>К ВЫЖИВАНИЮ</button>
            </div>
         </div>
       )}
 
       {showJoinModal && (
-        <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
-          <div className="menu-box" style={{ width: '90%', maxWidth: '350px', animation: 'slideUp 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
-             <h2 className="screen-title" style={{ fontSize: '2rem' }}>ВХОД В БУНКЕР</h2>
-             <p style={{ textAlign: 'center', marginBottom: '15px' }}>Введите код комнаты, который вам скинул создатель.</p>
+        <div className="modal-overlay" style={{ zIndex: 5000 }} onClick={() => setShowJoinModal(false)}>
+          <div className="menu-box" style={{ width: '90%', maxWidth: '360px', animation: 'scaleUp 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
+             <h2 className="screen-title" style={{ fontSize: '1.8rem' }}>ВХОД В БУНКЕР</h2>
+             <p style={{ textAlign: 'center', marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-dim)' }}>Введите 5-значный код комнаты.</p>
              <input 
                type="text" 
                className="code-input"
-               placeholder="НАПРИМЕР: X7V9P"
+               placeholder="ABCDE"
                value={joinCode}
                onChange={e => setJoinCode(e.target.value.toUpperCase())}
                maxLength={6}
@@ -800,23 +830,23 @@ function App() {
         )}
         
         {eliminatedPlayerInfo && (
-           <div className="spotlight-overlay elimination">
-              <div className="elimination-icon">💀</div>
-              <h2 className="elimination-title">
-                  {eliminatedPlayerInfo.eliminatedName.toUpperCase()} ИЗГНАН!
+           <div className="spotlight-overlay" style={{ background: 'rgba(150, 0, 0, 0.9)' }}>
+              <div style={{ fontSize: '8rem' }}>💀</div>
+              <h2 style={{ fontFamily: 'Teko', fontSize: '3rem', color: '#fff', textShadow: '4px 4px 0px #000', textAlign: 'center', padding: '20px' }}>
+                  {eliminatedPlayerInfo.eliminatedName.toUpperCase()} ИЗГНАН ИЗ БУНКЕРА!
               </h2>
            </div>
         )}
 
       {actionAnnouncement && (
          <div className="action-announcement">
-            <h1 className="announcement-title">СПЕЦУСЛОВИЕ!</h1>
-            <h2 className="announcement-subtitle">{actionAnnouncement.playerName.toUpperCase()} ПРИМЕНИЛ(А) КАРТУ</h2>
-            <div className="announcement-card-box">
-               <span className="card-title">«{actionAnnouncement.cardTitle.toUpperCase()}»</span>
+            <h1 style={{ color: 'var(--c-yellow)', fontSize: '3rem', margin: 0, textShadow: '2px 2px 0 #000' }}>СПЕЦУСЛОВИЕ!</h1>
+            <h2 style={{ color: '#fff', fontSize: '1.5rem', margin: 0 }}>{actionAnnouncement.playerName.toUpperCase()} ПРИМЕНИЛ(А) КАРТУ</h2>
+            <div style={{ background: 'var(--c-red)', padding: '10px 20px', borderRadius: '8px', marginTop: '10px', display: 'inline-block' }}>
+               <span style={{ fontWeight: 'bold', fontSize: '2rem', color: '#000' }}>«{actionAnnouncement.cardTitle.toUpperCase()}»</span>
             </div>
             {actionAnnouncement.targetName && (
-                <h2 className="announcement-target">НА ИГРОКА: <span className="highlight">{actionAnnouncement.targetName.toUpperCase()}</span></h2>
+                <h2 style={{ color: '#fff', fontSize: '1.5rem', marginTop: '10px' }}>НА ИГРОКА: <span style={{ color: 'var(--c-yellow)' }}>{actionAnnouncement.targetName.toUpperCase()}</span></h2>
             )}
          </div>
       )}
@@ -829,10 +859,10 @@ function App() {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="speech-bubble-master"
             >
-                <div className="speech-name">
+                <div style={{ color: 'var(--c-yellow)', fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '5px' }}>
                     {incomingSpeech.playerName.toUpperCase()} ГОВОРИТ:
                 </div>
-                <div className="speech-text">
+                <div style={{ color: '#fff', fontSize: '1.1rem', fontStyle: 'italic' }}>
                     «{incomingSpeech.text}»
                 </div>
             </motion.div>
