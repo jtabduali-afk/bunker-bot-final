@@ -160,6 +160,9 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // Перед созданием новой удаляем игрока из всех старых комнат (очистка мусора)
+        gameManager.removePlayerFromAllRooms(playerId, io);
+
         const roomId = gameManager.createRoom(playerId);
         const room = gameManager.getRoom(roomId);
         
@@ -184,6 +187,9 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // Перед входом в новую удаляем игрока из всех старых комнат
+        gameManager.removePlayerFromAllRooms(playerId, io);
+
         const room = gameManager.getRoom(roomId);
         
         if (room) {
@@ -194,6 +200,36 @@ io.on('connection', (socket) => {
             io.to(roomId).emit('room_update', { players: room.players });
         } else {
             socket.emit('error', { message: 'Комната не найдена!' });
+        }
+    });
+
+    // Проверка существующей сессии (для реконнекта)
+    socket.on('check_session', (data, callback) => {
+        const { playerId } = data;
+        const room = gameManager.findRoomByPlayer(playerId);
+        
+        if (room) {
+            const p = room.players.find(x => x.id === playerId);
+            p.socketId = socket.id; // Обновляем сокет
+            socket.join(room.id);
+            
+            console.log(`Восстановление сессии для ${p.name} в комнате ${room.id}`);
+            
+            // Отправляем актуальное состояние
+            socket.emit('room_update', { players: room.players, bunkerCondition: room.state.bunkerCondition });
+            
+            const clientCardsObj = {};
+            for (const [key, value] of Object.entries(p.character)) {
+                if (key !== 'actionCards') {
+                    const isRevealed = p.revealedCards.some(rc => rc.key === key);
+                    clientCardsObj[key] = { id: key, value: value, isRevealed: isRevealed };
+                }
+            }
+            socket.emit('your_cards', { cards: clientCardsObj, actionCards: p.character.actionCards || [] });
+            
+            if (callback) callback({ roomId: room.id, screen: room.state.phase === 'LOBBY' ? 'LOBBY' : 'GAME' });
+        } else {
+            if (callback) callback(null);
         }
     });
 
@@ -242,7 +278,9 @@ io.on('connection', (socket) => {
                      value: p.character[cardKey]
                 });
                 
-                room.state.hasRevealedInTurn = true;
+                if (playerId === room.state.currentSpeakerId) {
+                    room.state.hasRevealedInTurn = true;
+                }
 
                 io.to(roomId).emit('room_update', { players: room.players, bunkerCondition: room.state.bunkerCondition });
                 
