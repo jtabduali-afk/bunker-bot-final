@@ -216,7 +216,14 @@ io.on('connection', (socket) => {
             console.log(`Восстановление сессии для ${p.name} в комнате ${room.id}`);
             
             // Отправляем актуальное состояние
-            socket.emit('room_update', { players: room.players, bunkerCondition: room.state.bunkerCondition });
+            socket.emit('room_update', { 
+                players: room.players, 
+                bunkerCondition: room.state.bunkerCondition,
+                phase: room.state.phase,
+                round: room.state.round,
+                activeSpeakerId: room.state.currentSpeakerId,
+                messages: room.state.messages
+            });
             
             const clientCardsObj = {};
             for (const [key, value] of Object.entries(p.character)) {
@@ -316,6 +323,33 @@ io.on('connection', (socket) => {
         const room = gameManager.getRoom(roomId);
         if (room) {
             room.castVote(playerId, targetId, io);
+        }
+    });
+
+    // Отправка речи
+    socket.on('send_speech', (data) => {
+        const { roomId, playerId, text } = data;
+        const room = gameManager.getRoom(roomId);
+        if (room) {
+            const speaker = room.players.find(p => p.id === playerId);
+            if (speaker) {
+                const message = {
+                    senderName: speaker.name,
+                    senderId: speaker.id,
+                    text: text,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                room.state.messages.push(message);
+                
+                io.to(roomId).emit('room_update', { 
+                    players: room.players,
+                    messages: room.state.messages,
+                    bunkerCondition: room.state.bunkerCondition,
+                    phase: room.state.phase,
+                    round: room.state.round,
+                    activeSpeakerId: room.state.currentSpeakerId
+                });
+            }
         }
     });
 
