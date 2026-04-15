@@ -222,7 +222,8 @@ io.on('connection', (socket) => {
                 phase: room.state.phase,
                 round: room.state.round,
                 activeSpeakerId: room.state.currentSpeakerId,
-                messages: room.state.messages
+                messages: room.state.messages,
+                hasRevealedInTurn: room.state.hasRevealedInTurn
             });
             
             const clientCardsObj = {};
@@ -347,7 +348,8 @@ io.on('connection', (socket) => {
                     bunkerCondition: room.state.bunkerCondition,
                     phase: room.state.phase,
                     round: room.state.round,
-                    activeSpeakerId: room.state.currentSpeakerId
+                    activeSpeakerId: room.state.currentSpeakerId,
+                    hasRevealedInTurn: room.state.hasRevealedInTurn
                 });
             }
         }
