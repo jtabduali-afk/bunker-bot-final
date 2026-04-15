@@ -183,6 +183,15 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Обработка готовности игрока (Ready Check)
+    socket.on('player_ready', (data) => {
+        const { roomId, playerId } = data;
+        const room = gameManager.getRoom(roomId);
+        if (room) {
+            room.playerReady(playerId, io);
+        }
+    });
+
     // Вскрытие карты
     socket.on('reveal_card', (data) => {
         const { roomId, playerId, cardKey } = data;
