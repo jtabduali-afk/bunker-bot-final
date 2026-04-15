@@ -88,6 +88,8 @@ function App() {
   const [activeSpeakerId, setActiveSpeakerId] = useState(null); 
   const [showNameModal, setShowNameModal] = useState(false);
   const [tempPlayerName, setTempPlayerName] = useState('');
+  const [isReady, setIsReady] = useState(false);
+  const [readyStats, setReadyStats] = useState({ ready: 0, total: 0 });
   
   // Speeches
   const [speechText, setSpeechText] = useState('');
@@ -209,10 +211,18 @@ function App() {
 
     newSocket.on('speech_received', (data) => {
         setIncomingSpeech(data);
-        // Скрываем речь через 10 секунд или когда придет новая
         setTimeout(() => {
             setIncomingSpeech(prev => prev && prev.text === data.text ? null : prev);
         }, 10000);
+    });
+
+    newSocket.on('ready_progress', (data) => {
+        setReadyStats(data);
+    });
+
+    newSocket.on('round_started', () => {
+        setShowBunkerModal(false);
+        setIsReady(false);
     });
 
     return () => newSocket.close();
@@ -289,6 +299,12 @@ function App() {
       if (!speechText.trim()) return;
       socket.emit('send_speech', { roomId, playerId, text: speechText });
       setSpeechText('');
+  };
+
+  const handlePlayerReady = () => {
+      if (!socket || !roomId || isReady) return;
+      setIsReady(true);
+      socket.emit('player_ready', { roomId, playerId });
   };
 
   const handleRevealCard = (key) => {
@@ -774,11 +790,22 @@ function App() {
                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{bunkerCondition.perkDescription}</p>
                </div>
 
-               <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '24px' }}>
-                  Для победы в бункере должно остаться не более {bunkerCondition.capacity} человек.
-               </p>
-
-               <button className="btn-primary" onClick={() => setShowBunkerModal(false)}>К ВЫЖИВАНИЮ</button>
+               {isReady ? (
+                   <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--primary)' }}>
+                        <p style={{ color: 'var(--primary)', fontWeight: 'bold' }}>ОЖИДАНИЕ ИГРОКОВ... {readyStats.ready}/{readyStats.total}</p>
+                   </div>
+               ) : (
+                   <button 
+                       className="btn-primary" 
+                       onClick={handlePlayerReady}
+                   >
+                       Я ГОТОВ К ВЫЖИВАНИЮ
+                   </button>
+               )}
+               
+               {gamePhase !== 'BUNKER_INTRO' && (
+                   <button className="btn-danger" style={{ marginTop: '12px', background: 'transparent', border: 'none' }} onClick={() => setShowBunkerModal(false)}>ЗАКРЫТЬ</button>
+               )}
            </div>
         </div>
       )}
