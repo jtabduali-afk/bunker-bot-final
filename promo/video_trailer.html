@@ -23,6 +23,7 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             opacity: 0; visibility: hidden;
             transition: opacity 1s ease-in-out;
+            background: #000;
         }
         .scene.active {
             opacity: 1; visibility: visible;
@@ -71,18 +72,12 @@
             font-weight: 800; text-transform: uppercase; border: none;
             box-shadow: 0 0 15px var(--primary);
         }
-
-        /* Timeline Sequences */
-        #scene-1 .subtitle { animation-delay: 0.5s; }
-        #scene-2 .subtitle { animation-delay: 3.5s; }
-        #scene-3 .subtitle { animation-delay: 6.5s; }
-        #scene-4 .subtitle { animation-delay: 9.5s; }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Scene 1: Dark Intro -->
-        <div id="scene-1" class="scene active" style="background: black; display: flex; flex-direction: column;">
+        <div id="scene-1" class="scene active">
             <div class="text-overlay">
                 <div class="title">SECTOR X</div>
                 <div class="subtitle">СИСТЕМА ОБНАРУЖЕНА...</div>
@@ -91,7 +86,7 @@
 
         <!-- Scene 2: Bunker Entrance -->
         <div id="scene-2" class="scene">
-            <img class="bg-img" src="../promo_frame_1_bunker_entrance_1776287957904.png">
+            <img class="bg-img" src="file:///C:/Users/User/Desktop/Телеграм бот (игровой)/promo_frame_1_bunker_entrance_1776287957904.png">
             <div class="text-overlay">
                 <div class="subtitle">МИР УЖЕ НЕ БУДЕТ ПРЕЖНИМ</div>
             </div>
@@ -99,7 +94,7 @@
 
         <!-- Scene 3: Wasteland -->
         <div id="scene-3" class="scene">
-            <img class="bg-img" src="../promo_frame_2_wasteland_survivors_vert_1776287983373.png">
+            <img class="bg-img" src="file:///C:/Users/User/Desktop/Телеграм бот (игровой)/promo_frame_2_wasteland_survivors_vert_1776287983373.png">
             <div class="text-overlay">
                 <div class="subtitle">ВЫЖИВУТ НЕ ВСЕ.</div>
             </div>
@@ -107,7 +102,7 @@
 
         <!-- Scene 4: Final Logo -->
         <div id="scene-4" class="scene logo-scene">
-            <img class="bg-img" src="../promo_frame_3_tech_terminal_vert_1776288006074.png">
+            <img class="bg-img" src="file:///C:/Users/User/Desktop/Телеграм бот (игровой)/promo_frame_3_tech_terminal_vert_1776288006074.png">
             <div class="text-overlay">
                 <div class="title">SECTOR X</div>
                 <div class="subtitle">ТВОЙ ШАНС НА ЖИЗНЬ</div>
