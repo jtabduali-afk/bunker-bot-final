@@ -381,12 +381,24 @@ function App() {
     </div>
   );
 
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    if (!roomId) return;
+    navigator.clipboard.writeText(roomId);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
   const renderLobby = () => (
     <div className="menu-box">
       <h2 className="screen-title">ЖДЕМ ВЫЖИВШИХ</h2>
-      <div className="room-code-display">{roomId}</div>
+      <div className="room-code-display" onClick={copyToClipboard}>
+        {roomId}
+        {isCopied && <span className="copy-hint">СКОПИРОВАНО!</span>}
+      </div>
       <p style={{ textAlign: 'center', marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-dim)' }}>
-        Код вашей комнаты. Скиньте его друзьям для подключения.
+        Нажмите на код, чтобы скопировать. Отправьте его друзьям.
       </p>
       <ul className="player-list">
         {players.map(p => (
@@ -573,7 +585,7 @@ function App() {
   return (
     <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
       <audio ref={audioRef} src="/bg.mp3" loop />
-      <button className="floating-sound-btn" onClick={() => setVolume(volume > 0 ? 0 : 0.2)}>
+      <button className="floating-sound-btn" onClick={() => setVolume(volume > 0 ? 0 : 0.2)} aria-label="Toggle Sound">
          {volume > 0 ? '🔊' : '🔇'}
       </button>
 
