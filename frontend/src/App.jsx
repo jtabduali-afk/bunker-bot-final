@@ -68,6 +68,7 @@ function App() {
   const [bunkerCondition, setBunkerCondition] = useState(null);
   const [showBunkerModal, setShowBunkerModal] = useState(false);
   const [hasSeenBunkerIntro, setHasSeenBunkerIntro] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   // Action Cards
   const [actionCards, setActionCards] = useState([]);
@@ -393,7 +394,7 @@ function App() {
       </div>
       <button className="btn-primary" onClick={moveToLobby}>СОЗДАТЬ ИГРУ</button>
       <button className="btn-secondary" onClick={() => setShowJoinModal(true)}>ПРИСОЕДИНИТЬСЯ</button>
-      <button className="btn-secondary" style={{ opacity: 0.6 }} onClick={() => alert('Правила в разработке')}>ПРАВИЛА ИГРЫ</button>
+      <button className="btn-secondary" onClick={() => setShowRulesModal(true)}>ПРАВИЛА ИГРЫ</button>
     </div>
   );
 
@@ -807,6 +808,34 @@ function App() {
                    <button className="btn-danger" style={{ marginTop: '12px', background: 'transparent', border: 'none' }} onClick={() => setShowBunkerModal(false)}>ЗАКРЫТЬ</button>
                )}
            </div>
+        </div>
+      )}
+
+      {showRulesModal && (
+        <div className="modal-overlay" style={{ zIndex: 6000 }} onClick={() => setShowRulesModal(false)}>
+          <div className="menu-box" style={{ width: '90%', maxWidth: '450px', animation: 'scaleUp 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
+             <h2 className="screen-title" style={{ color: 'var(--primary)' }}>КАК ВЫЖИТЬ? ☢️</h2>
+             
+             <div className="rules-content" style={{ textAlign: 'left', lineHeight: '1.4', fontSize: '0.9rem' }}>
+                <p style={{ marginBottom: '16px' }}>
+                  <strong>1. СЮЖЕТ:</strong> Наступил апокалипсис. Вы стоите у порога последнего убежища. Мест на всех не хватит! 🛡️
+                </p>
+                <p style={{ marginBottom: '16px' }}>
+                  <strong>2. ЦЕЛЬ:</strong> Убедить остальных, что вы полезны для восстановления цивилизации. Вместимость бункера ограничена. 🏟️
+                </p>
+                <p style={{ marginBottom: '16px' }}>
+                  <strong>3. РАУНДЫ:</strong> Каждый ход вы открываете одну свою карту (Профессия, Здоровье, Хобби и т.д.). Расскажите о себе так, чтобы вас не выкинули! 🗣️
+                </p>
+                <p style={{ marginBottom: '16px' }}>
+                  <strong>4. ГОЛОСОВАНИЕ:</strong> После 3 раунда начинается самое интересное. Лишние игроки изгоняются из бункера навсегда... 💀
+                </p>
+                <p style={{ marginBottom: '16px' }}>
+                  <strong>5. КАРТЫ ДЕЙСТВИЯ:</strong> У вас есть козыри в рукаве! Используйте их, чтобы спастись или помешать конкурентам 🃏.
+                </p>
+             </div>
+
+             <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => setShowRulesModal(false)}>ПОНЯТНО</button>
+          </div>
         </div>
       )}
 
