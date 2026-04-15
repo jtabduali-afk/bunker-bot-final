@@ -177,7 +177,8 @@ class Room {
             phase: this.state.phase,
             round: this.state.round,
             activeSpeakerId: activePlayer.id,
-            messages: this.state.messages
+            messages: this.state.messages,
+            hasRevealedInTurn: this.state.hasRevealedInTurn
         });
 
         console.log(`Ход ${activePlayer.name} (Раунд ${this.state.round})`);
