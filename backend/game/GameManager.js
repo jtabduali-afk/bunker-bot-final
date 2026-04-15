@@ -31,7 +31,9 @@ class Room {
             timeoutRef: null,
             votes: {}, // { voterId: targetId }
             tieBreakerTargets: [], // [id1, id2]
-            bunkerCondition: null
+            bunkerCondition: null,
+            readyPlayers: new Set(),
+            introTimeoutRef: null
         };
     }
 
@@ -51,10 +53,44 @@ class Room {
     startGame(io) {
         if (this.players.length === 0) return;
         this.state.bunkerCondition = generateBunkerCondition(this.players.length);
-        this.state.phase = 'SPEAKING';
+        this.state.phase = 'BUNKER_INTRO';
         this.state.round = 1;
-        this.startTurnForPlayer(0, io);
+        this.state.readyPlayers = new Set();
+        
+        // Авто-старт через 60 секунд, если не все нажали готов
+        this.state.introTimeoutRef = setTimeout(() => {
+            console.log(`[Room ${this.id}] Авто-старт по таймеру (не все нажали готов)`);
+            this.startFirstTurn(io);
+        }, 60000);
+
         io.to(this.id).emit('game_started', { bunkerCondition: this.state.bunkerCondition });
+    }
+
+    playerReady(playerId, io) {
+        if (this.state.phase !== 'BUNKER_INTRO') return;
+        
+        this.state.readyPlayers.add(playerId);
+        const total = this.players.length;
+        const ready = this.state.readyPlayers.size;
+
+        // Оповещаем всех о прогрессе готовности
+        io.to(this.id).emit('ready_progress', { ready, total });
+
+        if (ready >= total) {
+            if (this.state.introTimeoutRef) {
+                clearTimeout(this.state.introTimeoutRef);
+                this.state.introTimeoutRef = null;
+            }
+            this.startFirstTurn(io);
+        }
+    }
+
+    startFirstTurn(io) {
+        if (this.state.phase !== 'BUNKER_INTRO') return;
+        this.state.phase = 'SPEAKING';
+        this.startTurnForPlayer(0, io);
+        // Дополнительное событие, чтобы фронтенд закрыл модалки
+        io.to(this.id).emit('round_started', { round: this.state.round });
     }
 
     startTurnForPlayer(livingIndex, io) {
