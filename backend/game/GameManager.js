@@ -33,14 +33,16 @@ class Room {
             tieBreakerTargets: [], // [id1, id2]
             bunkerCondition: null,
             readyPlayers: new Set(),
-            introTimeoutRef: null
+            introTimeoutRef: null,
+            hasRevealedInTurn: false
         };
     }
 
     join(playerData) { 
         if (!this.players.find(p => p.id === playerData.id)) {
             this.players.push({
-                ...playerData,
+                ...playerData, // Includes id, name, socketId, photoUrl
+                photoUrl: playerData.photoUrl || null,
                 isAlive: true,
                 character: generateRandomCharacter(),
                 revealedCards: [] 
@@ -120,8 +122,9 @@ class Room {
         const activePlayer = livingPlayers[livingIndex];
         this.state.currentSpeakerId = activePlayer.id;
         this.state.currentSpeakerIdx = livingIndex; // Индекс в массиве живых
+        this.state.hasRevealedInTurn = false;
 
-        const timeLimit = this.state.round === 1 ? 60 : 30;
+        const timeLimit = 60; // Всегда 60 секунд
 
         io.to(this.id).emit('turn_update', {
             activeSpeakerId: activePlayer.id,
@@ -133,11 +136,23 @@ class Room {
         console.log(`Ход ${activePlayer.name} (Раунд ${this.state.round})`);
 
         this.state.timeoutRef = setTimeout(() => {
-            this.nextTurn(io);
+            this.checkForceReveal(io);
         }, timeLimit * 1000 + 1000); 
     }
 
+    checkForceReveal(io) {
+        if (this.state.hasRevealedInTurn) {
+            this.nextTurn(io);
+        } else {
+            // Игрок не вскрыл карту - отправляем сигнал блокировки
+            io.to(this.id).emit('force_reveal_required', { playerId: this.state.currentSpeakerId });
+            console.log(`[Room ${this.id}] Игрок ${this.state.currentSpeakerId} обязан вскрыть карту!`);
+        }
+    }
+
     nextTurn(io) {
+        if (this.state.timeoutRef) clearTimeout(this.state.timeoutRef);
+        
         if (this.state.phase === 'TIE_BREAKER') {
             this.startTieBreakerTurn(this.state.currentSpeakerIdx + 1, io);
         } else {
