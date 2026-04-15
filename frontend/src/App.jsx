@@ -98,10 +98,9 @@ function App() {
   const [lastAttempt, setLastAttempt] = useState(null); // { type: 'CREATE' } или { type: 'JOIN', roomId: '...' }
   const [messages, setMessages] = useState([]);
   const [revealNotif, setRevealNotif] = useState(null); // { playerName, label, value }
+  const [isBurgerOpen, setIsBurgerOpen] = useState(false);
   
-  // Speeches
   const [speechText, setSpeechText] = useState('');
-  const [incomingSpeech, setIncomingSpeech] = useState(null); // { playerName, text }
   const [cards, setCards] = useState(null);
   const [hasRevealedThisRound, setHasRevealedThisRound] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null); 
@@ -259,13 +258,6 @@ function App() {
         setSpotlightCard(null);
     });
 
-    newSocket.on('speech_received', (data) => {
-        setIncomingSpeech(data);
-        setTimeout(() => {
-            setIncomingSpeech(prev => prev && prev.text === data.text ? null : prev);
-        }, 10000);
-    });
-
     newSocket.on('ready_progress', (data) => {
         setReadyStats(data);
     });
@@ -320,7 +312,6 @@ function App() {
   const moveToLobby = () => {
     if (!socket) return;
     setLastAttempt({ type: 'CREATE' });
-    playBackgroundMusic(); 
     socket.emit('create_room', { playerId, playerName, photoUrl: playerPhoto }, (response) => {
         setRoomId(response.roomId);
         setPlayers(response.players);
@@ -333,7 +324,6 @@ function App() {
   const handleJoinSubmit = () => {
     if (!socket || !joinCode) return;
     setLastAttempt({ type: 'JOIN', roomId: joinCode });
-    playBackgroundMusic();
     socket.emit('join_room', { roomId: joinCode, playerId, playerName, photoUrl: playerPhoto });
     setRoomId(joinCode);
     setScreen('LOBBY');
@@ -372,26 +362,18 @@ function App() {
       setSpeechText(''); // Очищаем поле
   };
 
-  const PROFESSION_ICONS = {
-    "Программист": "💻", "хирург": "💉", "сантехник": "🔧", "Агроном": "🌱", "Маньяк": "🔪",
-    "тренер": "💪", "полицейский": "👮", "Политик": "🎤", "Священник": "🙏", "Учитель": "🔨",
-    "Пилот": "🧑‍✈️", "Выживальщик": "🏕️", "Химик": "🧪", "Снайпер": "🎯", "Электрик": "⚡",
-    "Повар": "👨‍🍳", "Психотерапевт": "🛋️", "Таролог": "🔮", "Тиктокер": "📱", "ноготочкам": "💅",
-    "Патологоанатом": "🔬", "Курьер": "📦", "Депутат": "📜", "Маляр": "🖌️", "Ветеринар": "🐾",
-    "Дрессировщик": "🦁", "Инженер": "🏗️", "Аниматор": "🤡", "Тату": "🎨"
+  const handleLeaveRoom = () => {
+    if (socket && roomId) {
+        socket.emit('leave_room', { playerId });
+        setRoomId(null);
+        setScreen('MENU');
+        setIsBurgerOpen(false);
+    }
   };
 
   const getAvatar = (p) => {
       if (p.photoUrl) return <img src={p.photoUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />;
-      
-      const profCard = p.revealedCards?.find(c => c.key === 'profession');
-      if (profCard) {
-          const val = typeof profCard.value === 'string' ? profCard.value : profCard.value.text;
-          for (const [key, icon] of Object.entries(PROFESSION_ICONS)) {
-              if (val.toLowerCase().includes(key.toLowerCase())) return <span style={{ fontSize: '1.5rem' }}>{icon}</span>;
-          }
-      }
-      return <span style={{ fontSize: '1.5rem' }}>☢️</span>;
+      return <span style={{ fontSize: '1.5rem' }}>{!p.isAlive ? '💀' : '👤'}</span>;
   };
 
   const handlePlayerReady = () => {
@@ -727,6 +709,9 @@ function App() {
   return (
     <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
       <audio ref={audioRef} src="/bg.mp3" loop />
+      <div className="floating-sound-btn" onClick={() => setVolume(v => v === 0 ? 0.2 : 0)} style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, cursor: 'pointer', fontSize: '1.5rem' }}>
+          {volume > 0 ? '🔊' : '🔇'}
+      </div>
 
       <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>Sector X</h1>
       <div style={{ 
@@ -744,6 +729,24 @@ function App() {
       {screen === 'LOBBY' && renderLobby()}
       {screen === 'GAME' && renderGame()}
       {screen === 'GAME_OVER_SCREEN' && renderGameOver()}
+
+       {(screen === 'LOBBY' || screen === 'GAME') && (
+           <>
+              <div className="burger-btn" onClick={() => setIsBurgerOpen(!isBurgerOpen)} style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 10001, cursor: 'pointer', fontSize: '1.8rem', color: 'var(--primary)' }}>
+                ☰
+              </div>
+              
+              {isBurgerOpen && (
+                  <div className="modal-overlay" style={{ zIndex: 10000, background: 'rgba(0,0,0,0.8)' }} onClick={() => setIsBurgerOpen(false)}>
+                      <div className="menu-box" style={{ maxWidth: '300px', padding: '40px 20px' }} onClick={e => e.stopPropagation()}>
+                          <h3 style={{ marginBottom: '24px', fontSize: '1rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>НАСТРОЙКИ</h3>
+                          <button className="btn-secondary" style={{ width: '100%', marginBottom: '12px' }} onClick={() => setIsBurgerOpen(false)}>ПРОДОЛЖИТЬ</button>
+                          <button className="btn-danger" style={{ width: '100%' }} onClick={handleLeaveRoom}>ВЫЙТИ ИЗ ИГРЫ</button>
+                      </div>
+                  </div>
+              )}
+           </>
+       )}
 
       {revealNotif && (
            <div className="modal-overlay" style={{ zIndex: 9000, background: 'transparent', pointerEvents: 'none' }}>
