@@ -356,18 +356,20 @@ function App() {
   };
 
   const renderMenu = () => (
-    <div className="menu-box" style={{ textAlign: "center" }}>
-      <img 
-        src="https://cdn-icons-png.flaticon.com/512/8664/8664790.png" 
-        alt="Gas Mask" 
-        style={{ width: "120px", marginBottom: "15px", filter: "invert(0.6) sepia(1) saturate(5) hue-rotate(350deg)" }} 
-      />
+    <div className="menu-box text-center">
+      <div className="menu-icon-wrapper">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/8664/8664790.png" 
+          alt="Gas Mask" 
+          className="gas-mask-img"
+        />
+      </div>
       <h2 className="screen-title">ГЛАВНОЕ МЕНЮ</h2>
-      <div style={{ marginBottom: '15px' }}>
-          <span style={{ color: 'var(--c-grey)', fontSize: '0.9rem' }}>Ваш ник: </span>
-          <strong style={{ color: 'var(--c-yellow)' }}>{playerName}</strong>
+      <div className="nickname-display">
+          <span>Ваш ник: </span>
+          <strong className="text-highlight">{playerName}</strong>
           <button 
-            style={{ marginLeft: '10px', background: 'none', border: 'none', color: 'var(--c-blue)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+            className="link-btn"
             onClick={() => { setTempPlayerName(playerName); setShowNameModal(true); }}
           >
             Изменить
@@ -375,7 +377,7 @@ function App() {
       </div>
       <button className="btn-primary" onClick={moveToLobby}>СОЗДАТЬ ИГРУ</button>
       <button className="btn-secondary" onClick={() => setShowJoinModal(true)}>ПРИСОЕДИНИТЬСЯ</button>
-      <button className="btn-secondary" style={{ borderColor: 'var(--c-grey)', color: 'var(--c-grey)' }}>ПРАВИЛА ИГРЫ</button>
+      <button className="btn-secondary btn-muted">ПРАВИЛА ИГРЫ</button>
     </div>
   );
 
@@ -383,23 +385,19 @@ function App() {
     <div className="menu-box">
       <h2 className="screen-title">ЖДЕМ ВЫЖИВШИХ</h2>
       <div className="room-code-display">{roomId}</div>
-      <p style={{ textAlign: 'center', marginBottom: '15px' }}>Код вашей комнаты. Скиньте его друзьям!</p>
+      <p className="description-text">Код вашей комнаты. Скиньте его друзьям!</p>
       <ul className="player-list">
         {players.map(p => (
-           <li key={p.id}>
-             {p.id === playerId ? (
-                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                     <span>{p.name} (Вы) {p.id === players[0]?.id && '👑'}</span>
-                     <button 
-                        style={{ background: 'none', border: 'none', color: 'var(--c-blue)', fontSize: '0.8rem', cursor: 'pointer' }}
-                        onClick={() => { setTempPlayerName(p.name); setShowNameModal(true); }}
-                     >
-                        [ред.]
-                     </button>
-                 </span>
-             ) : (
-                 `${p.name} ${p.id === players[0]?.id ? '👑' : ''}`
-             )}
+           <li key={p.id} className={p.id === playerId ? 'current-player' : ''}>
+              <span>{p.name} {p.id === playerId && '(Вы)'} {p.id === players[0]?.id && '👑'}</span>
+              {p.id === playerId && (
+                  <button 
+                    className="icon-btn-text"
+                    onClick={() => { setTempPlayerName(p.name); setShowNameModal(true); }}
+                  >
+                    [ред.]
+                  </button>
+              )}
            </li>
         ))}
       </ul>
@@ -415,23 +413,23 @@ function App() {
   const renderGame = () => (
     <>
       <div className="status-bar">
-        <span style={{ color: 'var(--c-yellow)' }}>
+        <span className="status-phase">
            {gamePhase === 'VOTING' ? 'ФАЗА ИЗГНАНИЯ' : `РАУНД: ${round}`}
         </span>
         {bunkerCondition && (
            <button 
-             className="bunker-info-btn"
+             className="bunker-info-btn-trigger"
              onClick={() => setShowBunkerModal(true)}
            >
-             ☢️ ИНФО О БУНКЕРЕ
+             ☢️ БУНКЕР
            </button>
         )}
-        {timeLeft > 0 && <span style={{ color: 'var(--c-red)' }}>ТАЙМЕР: 0:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</span>}
+        {timeLeft > 0 && <span className="status-timer">0:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</span>}
       </div>
 
       <div className="game-table-container">
-         <h3 style={{ fontFamily: 'Teko', fontSize: '2rem', marginBottom: '20px', textAlign: 'center', textTransform: 'uppercase', color: gamePhase === 'VOTING' ? 'var(--c-red)' : 'var(--text-main)' }}>
-            {gamePhase === 'VOTING' ? 'ВЫБЕРИТЕ ЖЕРТВУ' : 'Все выжившие здесь'}
+         <h3 className={`table-title ${gamePhase === 'VOTING' ? 'danger' : ''}`}>
+            {gamePhase === 'VOTING' ? 'ВЫБЕРИТЕ ЖЕРТВУ' : 'ВСЕ ВЫЖИВШИЕ'}
          </h3>
          
          <div className="players-grid">
@@ -446,7 +444,6 @@ function App() {
                       key={p.id} 
                       className={classNames}
                       onClick={() => handlePlayerClick(p)}
-                      style={{ cursor: (!p.isAlive || (gamePhase === 'VOTING' && !votingAllowedTargets.includes(p.id))) ? 'not-allowed' : 'pointer' }}
                    >
                       <div className="player-avatar">{!p.isAlive ? '💀' : '👨‍⚕️'}</div>
                       <div className="player-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
@@ -462,52 +459,50 @@ function App() {
              })}
          </div>
 
-         <div className="menu-box" style={{ marginTop: '20px', padding: '15px', textAlign: 'center' }}>
+          <div className="msg-box-info">
              {gamePhase === 'VOTING' ? (
-                 <>
-                    <h4 style={{ marginBottom: '10px', color: 'var(--c-red)', textTransform: 'uppercase' }}>ВРЕМЯ ИЗГНАНИЯ!</h4>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '0' }}>
-                       {votedFor 
-                           ? `Голос отдан. Ожидаем остальных...` 
-                           : (players.find(p => p.id === playerId)?.isAlive ? `Нажмите на игрока, чтобы проголосовать против него.` : 'Мертвые просто наблюдают.')}
-                    </p>
-                 </>
+                 <div className="voting-msg">
+                     <h4 className="msg-title danger">ВРЕМЯ ИЗГНАНИЯ!</h4>
+                     <p className="msg-text">
+                        {votedFor 
+                            ? `Голос отдан. Ожидаем остальных...` 
+                            : (players.find(p => p.id === playerId)?.isAlive ? `Нажмите на игрока, чтобы проголосовать против него.` : 'Мертвые просто наблюдают.')}
+                     </p>
+                 </div>
              ) : activeSpeakerId === playerId ? (
-                <>
-                  <h4 style={{ marginBottom: '10px', color: gamePhase === 'TIE_BREAKER' ? 'var(--c-orange)' : 'var(--c-yellow)', textTransform: 'uppercase' }}>
-                     {gamePhase === 'TIE_BREAKER' ? 'ВАША ЗАЩИТНАЯ РЕЧЬ!' : 'ВАШ ХОД! Оправдайтесь или вскройте карту.'}
-                  </h4>
-                  <div style={{ marginBottom: '15px' }}>
-                      <textarea 
-                        className="code-input" 
-                        style={{ height: '80px', fontSize: '1rem', padding: '10px', marginBottom: '10px' }}
-                        placeholder="Введите ваше оправдание / ложь здесь..."
-                        value={speechText}
-                        onChange={(e) => setSpeechText(e.target.value)}
-                      />
-                      <button className="btn-secondary" style={{ width: '100%' }} onClick={handleSendSpeech} disabled={!speechText.trim()}>
-                         ОТПРАВИТЬ РЕЧЬ ВСЕМ
-                      </button>
-                  </div>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '15px' }}>
-                     Нажмите на <strong style={{ color: 'var(--c-yellow)' }}>свою аватарку</strong>, чтобы открыть свои карты и вскрыть одну из них!
-                  </p>
-                  <button 
-                    className="btn-primary" 
-                    onClick={() => socket.emit('end_turn', { roomId, playerId })}
-                    disabled={!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER'}
-                    style={(!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER') ? { opacity: 0.5, filter: 'grayscale(1)', cursor: 'not-allowed' } : {}}
-                  >
-                    {(hasRevealedThisRound || gamePhase === 'TIE_BREAKER') ? 'Я ВЫСКАЗАЛСЯ / ЗАВЕРШИТЬ ХОД' : 'СНАЧАЛА ВСКРОЙТЕ КАРТУ!'}
-                  </button>
-                </>
+                <div className="turn-msg">
+                   <h4 className={`msg-title ${gamePhase === 'TIE_BREAKER' ? 'warning' : 'primary'}`}>
+                      {gamePhase === 'TIE_BREAKER' ? 'ЗАЩИТНАЯ РЕЧЬ!' : 'ВАШ ХОД!'}
+                   </h4>
+                   <div className="speech-controls">
+                       <textarea 
+                         className="speech-textarea" 
+                         placeholder="Введите ваше оправдание / ложь..."
+                         value={speechText}
+                         onChange={(e) => setSpeechText(e.target.value)}
+                       />
+                       <button className="btn-secondary" onClick={handleSendSpeech} disabled={!speechText.trim()}>
+                          ОТПРАВИТЬ РЕЧЬ
+                       </button>
+                   </div>
+                   <p className="msg-tip">
+                      Нажмите на <strong className="highlight">свою аватарку</strong>, чтобы вскрыть карту!
+                   </p>
+                   <button 
+                     className="btn-primary" 
+                     onClick={() => socket.emit('end_turn', { roomId, playerId })}
+                     disabled={!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER'}
+                   >
+                     {(hasRevealedThisRound || gamePhase === 'TIE_BREAKER') ? 'ЗАВЕРШИТЬ ХОД' : 'СНАЧАЛА ВСКРОЙТЕ КАРТУ'}
+                   </button>
+                 </div>
              ) : (
-               <>
-                 <h4 style={{ marginBottom: '10px', color: 'var(--c-grey)' }}>ОЖИДАНИЕ...</h4>
-                 <p style={{ fontSize: '0.8rem', color: 'var(--c-grey)', marginBottom: '0' }}>
-                    {gamePhase === 'TIE_BREAKER' ? 'Слушайте защитную речь кандидата на вылет!' : 'Сейчас выступает другой игрок. Таймер отмеряет его ход.'}
-                 </p>
-               </>
+                <div className="waiting-msg">
+                  <h4 className="msg-title muted">ОЖИДАНИЕ...</h4>
+                  <p className="msg-text muted">
+                     {gamePhase === 'TIE_BREAKER' ? 'Слушайте защитную речь!' : 'Сейчас выступает другой игрок.'}
+                  </p>
+                </div>
              )}
          </div>
       </div>
@@ -515,44 +510,40 @@ function App() {
   );
 
   const renderGameOver = () => (
-    <div className="menu-box" style={{ width: '95%', maxWidth: '500px', animation: 'slideUp 0.5s ease-out', margin: '20px auto', padding: '30px 20px', textAlign: 'center' }}>
-       <h1 style={{ fontFamily: 'Teko', fontSize: '3.5rem', color: 'var(--c-red)', marginBottom: '10px', textShadow: '2px 2px 0px #000' }}>ИГРА ОКОНЧЕНА</h1>
+    <div className="game-over-container">
+       <h1 className="game-over-title">ИГРА ОКОНЧЕНА</h1>
        
-       <h2 style={{ color: 'var(--c-yellow)', marginBottom: '15px' }}>Выжившие в Бункере:</h2>
+       <h2 className="survivors-title">ВЫЖИВШИЕ В БУНКЕРЕ:</h2>
        {gameOverData && gameOverData.survivors && gameOverData.survivors.length > 0 ? (
-           <div className="players-grid" style={{ marginBottom: '20px' }}>
+           <div className="survivors-grid">
                {gameOverData.survivors.map(p => (
-                   <div key={p.id} className="player-slot" style={{ border: '2px solid var(--c-yellow)' }}>
-                       <div className="player-avatar">👨‍⚕️</div>
-                       <div className="player-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
+                   <div key={p.id} className="survivor-slot">
+                       <div className="survivor-avatar">👨‍⚕️</div>
+                       <div className="survivor-name">{p.id === playerId ? `${p.name} (Вы)` : p.name}</div>
                    </div>
                ))}
            </div>
        ) : (
-           <p style={{ color: 'var(--c-grey)', fontStyle: 'italic' }}>Никто не выжил...</p>
+           <p className="no-survivors">Никто не выжил...</p>
        )}
 
-       <div style={{ background: '#111', border: '2px solid var(--text-main)', borderRadius: '10px', padding: '20px', marginTop: '25px' }}>
-           <h3 style={{ color: 'var(--c-yellow)', marginBottom: '10px' }}>ВЕРДИКТ КОЛОНИИ:</h3>
-           <p style={{ fontSize: '1.2rem', color: 'var(--text-main)' }}>{gameOverData?.verdict}</p>
+       <div className="verdict-box">
+           <h3 className="verdict-title">ВЕРДИКТ КОЛОНИИ</h3>
+           <p className="verdict-text">{gameOverData?.verdict}</p>
        </div>
 
        {gameOverData?.survivalProbability != null && (
-           <div style={{ padding: '20px', marginTop: '20px', background: '#222', borderRadius: '10px' }}>
-               <h3 style={{ color: 'var(--c-yellow)', marginBottom: '15px', fontSize: '1.4rem' }}>ВЕРОЯТНОСТЬ ВЫЖИВАНИЯ:</h3>
-               <div style={{ background: '#111', width: '100%', height: '35px', borderRadius: '20px', overflow: 'hidden', position: 'relative', border: '2px solid #444' }}>
-                   <div style={{
-                       width: `${animatedScore}%`,
-                       height: '100%',
-                       background: animatedScore > 50 ? 'var(--c-yellow)' : 'var(--c-red)',
-                       transition: 'width 2.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                       boxShadow: '0 0 10px rgba(0,0,0,0.5) inset'
-                   }} />
-                   <div style={{
-                       position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', textShadow: '1px 1px 2px #000', fontSize: '1.2rem', color: '#fff'
-                   }}>
-                       {animatedScore}%
-                   </div>
+           <div className="survival-stats">
+               <h3 className="stats-title">ВЕРОЯТНОСТЬ ВЫЖИВАНИЯ</h3>
+               <div className="progress-container">
+                   <div 
+                      className="progress-fill"
+                      style={{ 
+                         width: `${animatedScore}%`,
+                         backgroundColor: animatedScore > 50 ? 'var(--c-sage)' : 'var(--c-rust)'
+                      }} 
+                   />
+                   <div className="progress-label">{animatedScore}%</div>
                </div>
            </div>
        )}
@@ -570,15 +561,8 @@ function App() {
          {volume > 0 ? '🔊' : '🔇'}
       </button>
 
-      <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>БУНКЕР</h1>
-      <div style={{ 
-          color: isConnected ? '#2ecc71' : '#e74c3c', 
-          textAlign: 'center', 
-          fontWeight: 'bold',
-          fontSize: '0.8rem',
-          textShadow: '0 0 5px rgba(0,0,0,0.5)',
-          marginBottom: '20px'
-      }}>
+      <h1 className="game-title">БУНКЕР</h1>
+      <div className={`connection-status ${isConnected ? 'online' : 'offline'}`}>
           {isConnected ? '● СИСТЕМА ОНЛАЙН' : '○ ПОДКЛЮЧЕНИЕ ПРЕРВАНО...'}
       </div>
       
@@ -596,12 +580,12 @@ function App() {
               <div className="card-big-icon">{ICONS[activeCardKey]}</div>
               <div className="card-big-value">
                 {activeCardKey === 'biology' && typeof activeCard.value === 'object' ? (
-                   <div>
-                       <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', justifyContent: 'center' }}>
-                           <span style={{ padding: '5px 15px', background: 'var(--c-yellow)', color: '#000', borderRadius: '15px', fontWeight: 'bold' }}>Пол: {activeCard.value.gender}</span>
-                           <span style={{ padding: '5px 15px', background: 'var(--c-red)', color: '#fff', borderRadius: '15px', fontWeight: 'bold' }}>Возр: {activeCard.value.age}</span>
+                   <div className="bio-card-content">
+                       <div className="bio-tags">
+                           <span className="tag-gender">Пол: {activeCard.value.gender}</span>
+                           <span className="tag-age">Возраст: {activeCard.value.age}</span>
                        </div>
-                       <div>{activeCard.value.text}</div>
+                       <div className="bio-text">{activeCard.value.text}</div>
                    </div>
                 ) : typeof activeCard.value === 'object' ? activeCard.value.text : activeCard.value}
               </div>
@@ -725,35 +709,34 @@ function App() {
       )}
 
       {showBunkerModal && bunkerCondition && (
-        <div className="modal-overlay" style={{ zIndex: 3500 }} onClick={() => setShowBunkerModal(false)}>
+        <div className="modal-overlay spotlight" onClick={() => setShowBunkerModal(false)}>
            <div className="menu-box bunker-modal" onClick={e => e.stopPropagation()}>
-               <div style={{ fontSize: '4rem', textAlign: 'center', marginBottom: '-15px' }}>☢️</div>
-               <h2 className="screen-title" style={{ fontSize: '2.5rem', color: 'var(--c-red)', borderBottom: 'none', marginBottom: '10px' }}>ВВОДНАЯ СВОДКА</h2>
+               <div className="bunker-icon">☢️</div>
+               <h2 className="screen-title danger">ВВОДНАЯ СВОДКА</h2>
                
                <div className="bunker-section">
-                   <h3 style={{ color: 'var(--c-yellow)', marginBottom: '5px' }}>КАТАСТРОФА: {bunkerCondition.catastropheTitle.toUpperCase()}</h3>
-                   <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '10px' }}>{bunkerCondition.catastropheDescription}</p>
+                   <h3 className="section-title">КАТАСТРОФА: {bunkerCondition.catastropheTitle.toUpperCase()}</h3>
+                   <p className="section-text">{bunkerCondition.catastropheDescription}</p>
                </div>
                
                <div className="bunker-section">
-                   <h3 style={{ color: 'var(--c-yellow)', marginBottom: '5px' }}>ВРЕМЯ ПРЕБЫВАНИЯ:</h3>
-                   <p style={{ color: 'var(--c-red)', fontSize: '1.5rem', fontWeight: 'bold' }}>{bunkerCondition.timeInside} ЛЕТ</p>
+                   <h3 className="section-title">ВРЕМЯ ПРЕБЫВАНИЯ</h3>
+                   <p className="section-valuehighlight">{bunkerCondition.timeInside} ЛЕТ</p>
                </div>
 
                <div className="bunker-section">
-                   <h3 style={{ color: 'var(--c-yellow)', marginBottom: '5px' }}>ОСОБЕННОСТЬ БУНКЕРА: {bunkerCondition.perkTitle}</h3>
-                   <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '10px' }}>{bunkerCondition.perkDescription}</p>
+                   <h3 className="section-title">ОСОБЕННОСТЬ БУНКЕРА: {bunkerCondition.perkTitle}</h3>
+                   <p className="section-text">{bunkerCondition.perkDescription}</p>
                </div>
 
-               <div className="bunker-section" style={{ border: '2px solid var(--c-red)', background: 'rgba(231, 76, 60, 0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center', marginTop: '15px' }}>
-                   <h3 style={{ color: 'var(--c-red)', marginBottom: '5px' }}>ВМЕСТИМОСТЬ УБЕЖИЩА</h3>
-                   <p style={{ fontSize: '1.2rem', marginBottom: 0 }}>
-                       Живых игроков: {players.filter(p=>p.isAlive).length} | Мест: <strong style={{ color: 'var(--c-yellow)', fontSize: '1.5rem' }}>{bunkerCondition.capacity}</strong>
+               <div className="bunker-capacity-box">
+                   <h3 className="capacity-title">ВМЕСТИМОСТЬ УБЕЖИЩА</h3>
+                   <p className="capacity-text">
+                       Живых: {players.filter(p=>p.isAlive).length} / Мест: <strong className="highlight">{bunkerCondition.capacity}</strong>
                    </p>
-                   <p style={{ fontSize: '0.8rem', color: 'var(--c-grey)', marginTop: '5px', marginBottom: 0 }}>Остальные должны быть изгнаны до окончания игры.</p>
                </div>
 
-               <button className="btn-primary" style={{ marginTop: '30px' }} onClick={() => setShowBunkerModal(false)}>Я ПОНЯЛ, ВЫЖИВАЕМ</button>
+               <button className="btn-primary" onClick={() => setShowBunkerModal(false)}>Я ПОНЯЛ, ВЫЖИВАЕМ</button>
            </div>
         </div>
       )}
@@ -817,23 +800,23 @@ function App() {
         )}
         
         {eliminatedPlayerInfo && (
-           <div className="spotlight-overlay" style={{ background: 'rgba(150, 0, 0, 0.9)' }}>
-              <div style={{ fontSize: '8rem' }}>💀</div>
-              <h2 style={{ fontFamily: 'Teko', fontSize: '3rem', color: '#fff', textShadow: '4px 4px 0px #000', textAlign: 'center', padding: '20px' }}>
-                  {eliminatedPlayerInfo.eliminatedName.toUpperCase()} ИЗГНАН ИЗ БУНКЕРА!
+           <div className="spotlight-overlay elimination">
+              <div className="elimination-icon">💀</div>
+              <h2 className="elimination-title">
+                  {eliminatedPlayerInfo.eliminatedName.toUpperCase()} ИЗГНАН!
               </h2>
            </div>
         )}
 
       {actionAnnouncement && (
          <div className="action-announcement">
-            <h1 style={{ color: 'var(--c-yellow)', fontSize: '3rem', margin: 0, textShadow: '2px 2px 0 #000' }}>СПЕЦУСЛОВИЕ!</h1>
-            <h2 style={{ color: '#fff', fontSize: '1.5rem', margin: 0 }}>{actionAnnouncement.playerName.toUpperCase()} ПРИМЕНИЛ(А) КАРТУ</h2>
-            <div style={{ background: 'var(--c-red)', padding: '10px 20px', borderRadius: '8px', marginTop: '10px', display: 'inline-block' }}>
-               <span style={{ fontWeight: 'bold', fontSize: '2rem', color: '#000' }}>«{actionAnnouncement.cardTitle.toUpperCase()}»</span>
+            <h1 className="announcement-title">СПЕЦУСЛОВИЕ!</h1>
+            <h2 className="announcement-subtitle">{actionAnnouncement.playerName.toUpperCase()} ПРИМЕНИЛ(А) КАРТУ</h2>
+            <div className="announcement-card-box">
+               <span className="card-title">«{actionAnnouncement.cardTitle.toUpperCase()}»</span>
             </div>
             {actionAnnouncement.targetName && (
-                <h2 style={{ color: '#fff', fontSize: '1.5rem', marginTop: '10px' }}>НА ИГРОКА: <span style={{ color: 'var(--c-yellow)' }}>{actionAnnouncement.targetName.toUpperCase()}</span></h2>
+                <h2 className="announcement-target">НА ИГРОКА: <span className="highlight">{actionAnnouncement.targetName.toUpperCase()}</span></h2>
             )}
          </div>
       )}
@@ -846,10 +829,10 @@ function App() {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="speech-bubble-master"
             >
-                <div style={{ color: 'var(--c-yellow)', fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '5px' }}>
+                <div className="speech-name">
                     {incomingSpeech.playerName.toUpperCase()} ГОВОРИТ:
                 </div>
-                <div style={{ color: '#fff', fontSize: '1.1rem', fontStyle: 'italic' }}>
+                <div className="speech-text">
                     «{incomingSpeech.text}»
                 </div>
             </motion.div>
