@@ -7,6 +7,7 @@ import cors from 'cors';
 import { setupBot, bot } from './bot/bot.js';
 import { GameManager } from './game/GameManager.js';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import localtunnel from 'localtunnel';
 
@@ -21,16 +22,14 @@ app.use(express.json());
 
 // Раздача фронтенда (static files)
 const frontendPath = path.resolve(__dirname, '../frontend/dist');
-console.log('📂 Попытка раздачи фронтенда из:', frontendPath);
+console.log('📂 Путь к фронтенду:', frontendPath);
 
 if (process.env.NODE_ENV === 'production') {
-    import('fs').then(fs => {
-        if (!fs.existsSync(frontendPath)) {
-            console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Папка /frontend/dist не найдена! Убедитесь, что билд прошел успешно.');
-        } else {
-            console.log('✅ Папка /frontend/dist найдена. Файлы готовы к раздаче.');
-        }
-    });
+    if (!fs.existsSync(frontendPath)) {
+        console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Папка /frontend/dist не найдена!');
+    } else {
+        console.log('✅ Папка /frontend/dist найдена.');
+    }
 }
 
 app.use(express.static(frontendPath));
@@ -63,12 +62,15 @@ const gameManager = new GameManager();
 setupBot(gameManager);
 
 const botToken = process.env.BOT_TOKEN;
+console.log('🤖 Проверка BOT_TOKEN...');
+
 if (botToken && botToken !== 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER') {
+    console.log('🚀 Запуск Telegram Бота...');
     bot.launch()
        .then(() => console.log('✅ Telegram Bot успешно запущен!'))
-       .catch((err) => console.error('Ошибка запуска бота:', err));
+       .catch((err) => console.error('❌ Ошибка запуска бота:', err));
 } else {
-    console.log('⚠️ Бот не запущен, так как нет правильного BOT_TOKEN в .env');
+    console.log('⚠️ BOT_TOKEN не валиден. Бот НЕ будет запущен.');
 }
 
 const PORT = process.env.PORT || 3000;
