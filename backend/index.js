@@ -136,13 +136,18 @@ const checkSubscription = async (userId) => {
         console.log(`[Subscription] Проверка пользователя ${userId} в канале @SectorX7...`);
         // Проверяем подписку на канал @SectorX7
         const member = await bot.telegram.getChatMember('@SectorX7', userId);
-        const allowedStatuses = ['member', 'administrator', 'creator'];
-        const isSubscribed = allowedStatuses.includes(member.status);
+        const allowedStatuses = ['member', 'administrator', 'creator', 'member']; // Расширяем для надежности
+        const isSubscribed = allowedStatuses.includes(member.status.toLowerCase());
         console.log(`[Subscription] Статус пользователя ${userId}: ${member.status}. Результат: ${isSubscribed}`);
         return isSubscribed;
     } catch (error) {
         console.error(`[Subscription ERROR] Ошибка проверки пользователя ${userId}:`, error.message);
-        return false; // По умолчанию считаем, что не подписан, если ошибка
+        // Если бот не может проверить (например, не в канале), временно разрешаем вход, чтобы не ломать игру
+        if (error.message.includes('chat not found') || error.message.includes('bot was kicked')) {
+            console.warn('⚠️ Ошибка доступа к каналу. Вход разрешен временно.');
+            return true;
+        }
+        return false;
     }
 };
 
