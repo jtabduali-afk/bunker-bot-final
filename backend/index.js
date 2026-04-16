@@ -10,7 +10,6 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import localtunnel from 'localtunnel';
-import http from 'http';
 import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
