@@ -65,8 +65,18 @@ export function setupBot(gameManager) {
         ctx.answerCbQuery('Используйте меню приложения!');
     });
 
+    // Команда для проверки связи
+    bot.command('ping', (ctx) => {
+        console.log(`📡 Пинг от ${ctx.from.id}`);
+        ctx.reply('☢️ Сектор X на связи! Система функционирует нормально.');
+    });
+
     // Убираем механику оправданий через бота по просьбе пользователя
     bot.on(['text', 'voice', 'video_note'], async (ctx) => {
+        // Логируем все входящие, чтобы видеть "живой" ли бот
+        const msgType = ctx.message.voice ? 'ГОЛОС' : ctx.message.video_note ? 'КРУЖОК' : 'ТЕКСТ';
+        console.log(`📩 [БОТ] Сообщение от ${ctx.from.id} (${ctx.from.username || 'anon'}): [${msgType}] "${ctx.message.text || ''}"`);
+
         if (ctx.message.text && ctx.message.text.startsWith('/')) return;
         
         if (ctx.message.chat.type === 'private') {
