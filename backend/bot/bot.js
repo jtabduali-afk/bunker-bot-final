@@ -35,6 +35,7 @@ async function deleteOldMenu(ctx) {
     }
 }
 
+export function setupBot(gameManager) {
     // Глобальный обработчик ошибок (чтобы бот не падал)
     bot.catch((err, ctx) => {
         console.error(`🔴 Ошибка Telegraf для пользователя ${ctx.from?.id}:`, err);
