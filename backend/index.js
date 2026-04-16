@@ -68,12 +68,23 @@ const botToken = process.env.BOT_TOKEN;
 console.log('🤖 Проверка BOT_TOKEN...');
 
 if (botToken && botToken !== 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER') {
-    console.log('🚀 Запуск Telegram Бота...');
-    bot.launch()
-       .then(() => console.log('✅ Telegram Bot успешно запущен!'))
-       .catch((err) => console.error('❌ Ошибка запуска бота:', err));
+    console.log('🚀 Подготовка к запуску Telegram Бота...');
+    
+    // Удаляем вебхуки и сбрасываем очередь сообщений, чтобы бот точно начал отвечать
+    bot.telegram.deleteWebhook({ drop_pending_updates: true })
+        .then(() => {
+            console.log('🧹 Старые вебхуки удалены, очередь очищена.');
+            return bot.launch();
+        })
+        .then(() => console.log('✅ Telegram Bot успешно запущен и готов к работе!'))
+        .catch((err) => {
+            console.error('❌ Ошибка при запуске бота:', err);
+            if (err.message.includes('409: Conflict')) {
+                console.warn('⚠️ Конфликт: Возможно, запущена еще одна копия бота. Попробуйте остановить другие процессы.');
+            }
+        });
 } else {
-    console.log('⚠️ BOT_TOKEN не валиден. Бот НЕ будет запущен.');
+    console.log('⚠️ BOT_TOKEN не валиден в .env. Бот НЕ будет запущен.');
 }
 
 const PORT = process.env.PORT || 3000;
