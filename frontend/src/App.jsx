@@ -515,7 +515,16 @@ function App() {
       </ul>
       {players[0]?.id === playerId && (
          <button className="btn-primary" onClick={() => {
-             if (socket) socket.emit('start_game', { roomId });
+             if (!socket) {
+                 alert("Критическая ошибка: Соединение с сервером разорвано!");
+                 return;
+             }
+             if (!roomId) {
+                 alert("Критическая ошибка: ID комнаты отсутствует!");
+                 return;
+             }
+             console.log("🚀 Эмиссия start_game для комнаты:", roomId);
+             socket.emit('start_game', { roomId });
          }}>НАЧАТЬ СПУСК</button>
       )}
       <button className="btn-danger" onClick={() => setScreen('MENU')} style={{ border: 'none', background: 'transparent', marginTop: '10px' }}>ПОКИНУТЬ ЛОББИ</button>
