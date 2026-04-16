@@ -10,6 +10,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import localtunnel from 'localtunnel';
+import http from 'http';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,24 +72,55 @@ console.log('🤖 Проверка BOT_TOKEN...');
 if (botToken && botToken !== 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER') {
     console.log('🚀 Подготовка к запуску Telegram Бота...');
     
-    // Удаляем вебхуки и сбрасываем очередь сообщений, чтобы бот точно начал отвечать
     bot.telegram.deleteWebhook({ drop_pending_updates: true })
         .then(() => {
-            console.log('🧹 Старые вебхуки удалены, очередь очищена.');
-            return bot.launch();
+            console.log('🧹 Старые вебхуки удалены.');
+            // Запуск бота с оптимизированными настройками опроса
+            return bot.launch({
+                polling: {
+                    timeout: 30, // Таймаут ожидания апдейтов (сек)
+                    limit: 100,  // Макс. кол-во апдейтов за раз
+                    allowed_updates: ['message', 'callback_query']
+                }
+            });
         })
-        .then(() => console.log('✅ Telegram Bot успешно запущен и готов к работе!'))
+        .then(() => console.log('✅ Telegram Bot успешно запущен!'))
         .catch((err) => {
             console.error('❌ Ошибка при запуске бота:', err);
-            if (err.message.includes('409: Conflict')) {
-                console.warn('⚠️ Конфликт: Возможно, запущена еще одна копия бота. Попробуйте остановить другие процессы.');
-            }
         });
-} else {
-    console.log('⚠️ BOT_TOKEN не валиден в .env. Бот НЕ будет запущен.');
-}
+} 
+
+// --- СИСТЕМА МОНИТОРИНГА И KEEP-ALIVE ---
 
 const PORT = process.env.PORT || 3000;
+
+// Функция для логирования состояния памяти
+const logMemory = () => {
+    const memory = process.memoryUsage();
+    console.log(`[Stats] Memory: ${(memory.rss / 1024 / 1024).toFixed(2)} MB`);
+};
+
+// Функция самопинг-а (чтобы Render не засыпал)
+const keepAlive = () => {
+    const url = process.env.FRONTEND_URL || `http://localhost:${PORT}`;
+    if (!url.includes('render.com')) {
+        // На локалке самопинг не обязателен
+        return;
+    }
+
+    console.log(`[Keep-Alive] Пингую систему: ${url}`);
+    const client = url.startsWith('https') ? https : http;
+    
+    client.get(`${url}/api/health`, (res) => {
+        console.log(`[Keep-Alive] Статус: ${res.statusCode}`);
+    }).on('error', (err) => {
+        console.error('[Keep-Alive ERROR] Ошибка пинга:', err.message);
+    });
+};
+
+// Запускаем интервалы
+setInterval(logMemory, 300000); // Каждые 5 минут
+setInterval(keepAlive, 840000); // Каждые 14 минут (Render засыпает через 15)
 
 // Запуск настройки доступа
 const setupAccess = async () => {
