@@ -35,17 +35,28 @@ async function deleteOldMenu(ctx) {
     }
 }
 
-export function setupBot(gameManager) {
+    // Глобальный обработчик ошибок (чтобы бот не падал)
+    bot.catch((err, ctx) => {
+        console.error(`🔴 Ошибка Telegraf для пользователя ${ctx.from?.id}:`, err);
+    });
+
     // Обработка команды /start
     bot.command('start', async (ctx) => {
-        await deleteOldMenu(ctx);
-        const sentMsg = await ctx.reply('☢️ *Убежище «Бункер» приветствует тебя.*\n\nЗдесь решается, кто достоин возродить человечество, а кто останется снаружи. Нажми кнопку ниже или в меню, чтобы войти.', {
-            parse_mode: 'Markdown',
-            ...Markup.inlineKeyboard([
-                [Markup.button.webApp('🚀 ВОЙТИ В БУНКЕР', process.env.FRONTEND_URL || 'https://google.com')]
-            ])
-        });
-        userMenus.set(ctx.from.id, sentMsg.message_id);
+        console.log(`📡 Получена команда /start от ${ctx.from.username} (${ctx.from.id})`);
+        try {
+            await deleteOldMenu(ctx);
+            const welcomeText = "☢️ *Убежище «Бункер» приветствует тебя.*\n\nЗдесь решается, кто достоин возродить человечество. Нажми кнопку ниже, чтобы войти в Сектор X.";
+            const sentMsg = await ctx.reply(welcomeText, {
+                parse_mode: 'Markdown',
+                ...Markup.inlineKeyboard([
+                    [Markup.button.webApp('🚀 ВОЙТИ В БУНКЕР', process.env.FRONTEND_URL || 'https://google.com')]
+                ])
+            });
+            userMenus.set(ctx.from.id, sentMsg.message_id);
+            console.log(`✅ Ответ на /start отправлен пользователю ${ctx.from.id}`);
+        } catch (error) {
+            console.error('❌ Ошибка в обработчике /start:', error);
+        }
     });
 
     // Обработка кнопок (больше не требуется для создания комнат через бота)
