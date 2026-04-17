@@ -67,14 +67,13 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-deep);
   color: var(--text-main);
-  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background-image: 
     radial-gradient(circle at 50% 50%, rgba(255, 176, 0, 0.03) 0%, transparent 80%),
     linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
   background-size: 100% 100%, 100% 4px, 100% 100%;
-  background-attachment: fixed;
   overflow-x: hidden;
   line-height: 1.6;
 }
@@ -94,11 +93,23 @@ body::after {
   max-width: 500px;
   margin: 0 auto;
   padding: 16px;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 1;
+}
+
+.terminal-grid {
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(var(--bg-card) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-card) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* TYPOGRAPHY */
@@ -157,10 +168,9 @@ h2.screen-title {
   border-color: var(--primary);
 }
 
-.btn-primary:hover {
-  background: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0px #000;
+.btn-primary:active, .btn-secondary:active, .btn-danger:active { 
+  transform: translateY(2px);
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -186,20 +196,35 @@ h2.screen-title {
   color: black;
 }
 
-.btn-primary:active { transform: scale(0.98); }
+.btn-primary:active { transform: translateY(2px); }
 
 /* CARDS & CONTAINERS */
 .menu-box {
-  background: var(--bg-surface);
-  backdrop-filter: blur(16px);
-  padding: 32px 24px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  background: rgba(26, 30, 26, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 0; /* Changed to handle header better */
+  border: 1px solid var(--primary-dim);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
   margin-bottom: 24px;
   max-height: 85vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  border-top-width: 4px;
+}
+
+.menu-inner {
+  padding: 32px 24px;
+}
+
+.menu-header-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--primary-dim);
+  filter: sepia(1) hue-rotate(-30deg) contrast(1.2);
 }
 
 .room-code-display {
