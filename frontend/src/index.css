@@ -130,6 +130,7 @@ h1.game-title {
   position: relative;
   z-index: 10;
   transition: all 0.5s ease;
+  white-space: nowrap;
 }
 
 .menu-mode h1.game-title {
@@ -142,6 +143,7 @@ h1.game-title {
     0 0 30px var(--primary-glow),
     0 0 60px var(--primary-glow);
   animation: flicker 3s infinite;
+  white-space: nowrap;
 }
 
 h2.screen-title {
@@ -228,6 +230,13 @@ h2.screen-title {
   flex-direction: column;
   gap: 16px;
   animation: fadeIn 0.4s ease-out;
+}
+
+.modal-overlay .menu-box {
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 32px 24px;
 }
 
 .menu-screen-vibe {
