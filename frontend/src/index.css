@@ -77,7 +77,6 @@ body {
   background-attachment: fixed;
   overflow-x: hidden;
   line-height: 1.6;
-  animation: flicker 0.15s infinite;
 }
 
 body::after {
@@ -316,7 +315,7 @@ h2.screen-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000; /* Higher than sound button */
   padding: 24px;
   animation: fadeIn 0.3s ease-out;
 }
@@ -427,6 +426,16 @@ h2.screen-title {
   position: relative;
 }
 
+.player-slot.dead {
+  opacity: 0.6;
+  border-color: #333;
+}
+
+.player-avatar.dead-avatar {
+  filter: grayscale(100%);
+  border-color: #444;
+}
+
 @keyframes pulse {
   0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--danger)); }
   50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--danger)); }
@@ -518,7 +527,7 @@ h2.screen-title {
 }
 
 .floating-sound-btn {
-  position: fixed;
+  position: absolute; /* Changed from fixed to absolute within container */
   top: 20px;
   right: 20px;
   width: 44px;
@@ -532,7 +541,7 @@ h2.screen-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5000;
+  z-index: 100; /* Lower z-index so modals cover it */
   cursor: pointer;
   transition: var(--transition);
 }
