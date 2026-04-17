@@ -491,27 +491,56 @@ function App() {
 
   const renderMenu = () => (
     <div className="menu-box">
-      <div style={{ textAlign: "center", marginBottom: "32px" }}>
-        <img 
-          src="https://cdn-icons-png.flaticon.com/512/8664/8664790.png" 
-          alt="Gas Mask" 
-          style={{ width: "100px", opacity: 0.8, filter: "sepia(0.5) hue-rotate(60deg) brightness(0.9)" }} 
-        />
+      <img src="/logo.png" alt="Sector X" className="menu-header-img" />
+      <div className="menu-inner">
+        <div style={{ padding: '4px 8px', background: 'var(--primary)', color: '#000', fontSize: '0.7rem', fontWeight: '900', display: 'inline-block', marginBottom: '16px' }}>
+             BUNKER_OS V4.2 / ACCESS_GRANTED
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px', border: '1px solid var(--primary-dim)', padding: '12px', background: 'rgba(0,0,0,0.3)' }}>
+             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
+                 EXTERNAL_RAD: <span style={{ color: 'var(--danger)' }}>142.4 mSv/h</span>
+             </div>
+             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
+                 INT_TEMP: <span style={{ color: 'var(--accent)' }}>21.4°C</span>
+             </div>
+             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
+                 ATMOS_PRESSURE: <span style={{ color: 'var(--primary)' }}>1014 hPa</span>
+             </div>
+             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
+                 STRUCT_INTEGRITY: <span style={{ color: 'var(--primary)' }}>94%</span>
+             </div>
+        </div>
+
+        <div style={{ textAlign: 'left', marginBottom: '32px' }}>
+          <div style={{ color: 'var(--text-dim)', fontSize: '0.7rem', marginBottom: '4px' }}>IDENTIFICATION:</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px', border: '1px solid var(--glass-border)' }}>
+              <div style={{ width: '40px', height: '40px', background: 'var(--bg-dark)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--primary-dim)' }}>
+                  {playerPhoto ? <img src={playerPhoto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : '👤'}
+              </div>
+              <div style={{ flex: 1 }}>
+                  <div style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '1rem' }}>{playerName}</div>
+                  <div style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>UUID: {playerId.substring(0, 8)}...</div>
+              </div>
+              <button 
+                style={{ background: 'var(--primary-dim)', border: 'none', color: '#000', padding: '4px 8px', fontSize: '0.6rem', fontWeight: '800', cursor: 'pointer' }}
+                onClick={() => { playClick(); setTempPlayerName(playerName); setShowNameModal(true); }}
+              >
+                EDIT
+              </button>
+          </div>
+        </div>
+
+        <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>
+            [ ИНИЦИИРОВАТЬ СПУСК ]
+        </button>
+        <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>
+            [ ПРИСОЕДИНИТЬСЯ К УЗЛУ ]
+        </button>
+        <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>
+            [ ПРОТОКОЛЫ ВЫЖИВАНИЯ ]
+        </button>
       </div>
-      <h2 className="screen-title">ГЛАВНОЕ МЕНЮ</h2>
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <span style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>Ваш ник: </span>
-          <strong style={{ color: 'var(--primary)', fontWeight: '700' }}>{playerName}</strong>
-          <button 
-            style={{ marginLeft: '12px', background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
-            onClick={() => { setTempPlayerName(playerName); setShowNameModal(true); }}
-          >
-            Изменить
-          </button>
-      </div>
-      <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>СОЗДАТЬ ИГРУ</button>
-      <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>ПРИСОЕДИНИТЬСЯ</button>
-      <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>ПРАВИЛА ИГРЫ</button>
     </div>
   );
 
@@ -757,6 +786,7 @@ function App() {
 
   return (
     <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
+      <div className="terminal-grid" />
       <BackgroundFX />
       
       <audio ref={audioRef} src="/bg.mp3" loop />
