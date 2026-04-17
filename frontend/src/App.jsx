@@ -496,16 +496,18 @@ function App() {
   };
 
   const renderMenu = () => (
-    <div className="menu-box">
-      <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>
-          НАЧАТЬ ИГРУ
-      </button>
-      <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>
-          ПРИСОЕДИНИТЬСЯ
-      </button>
-      <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>
-          ПРАВИЛА ИГРЫ
-      </button>
+    <div className="menu-screen-vibe">
+      <div className="menu-box">
+        <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>
+            НАЧАТЬ ИГРУ
+        </button>
+        <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>
+            ПРИСОЕДИНИТЬСЯ
+        </button>
+        <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>
+            ПРАВИЛА ИГРЫ
+        </button>
+      </div>
     </div>
   );
 
@@ -746,11 +748,10 @@ function App() {
        <button className="btn-primary" style={{ marginTop: '40px' }} onClick={() => window.location.reload()}>ИГРАТЬ ЕЩЕ РАЗ</button>
     </div>
   );
-
   const activeCard = (activeCardKey && cards) ? cards[activeCardKey] : null;
 
   return (
-    <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
+    <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''} ${screen === 'MENU' ? 'menu-mode' : ''}`}>
       <div className="terminal-grid" />
       <BackgroundFX />
       
@@ -759,12 +760,14 @@ function App() {
       <audio ref={clickRef} src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" />
       <audio ref={revealRef} src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" />
 
-      <h1 className="game-title" style={{ marginBottom: '10px' }}>SECTOR X</h1>
+      <h1 className="game-title" style={{ marginTop: '0px', marginBottom: '10px' }}>SECTOR X</h1>
       
       <div className="header-controls">
-         <button className="hamburger-btn" onClick={() => { playClick(); setIsBurgerOpen(!isBurgerOpen); }}>
-            {isBurgerOpen ? '✕' : '☰'}
-         </button>
+         {screen !== 'MENU' && (
+           <button className="hamburger-btn" onClick={() => { playClick(); setIsBurgerOpen(!isBurgerOpen); }}>
+              {isBurgerOpen ? '✕' : '☰'}
+           </button>
+         )}
          
          <div style={{ color: isConnected ? 'var(--accent)' : 'var(--danger)', fontSize: '0.7rem', fontWeight: '800', border: '1px solid currentColor', padding: '4px 12px', borderRadius: '4px', opacity: 0.8 }}>
             {isConnected ? '● СИСТЕМА ОНЛАЙН' : '○ СВЯЗЬ ПОТЕРЯНА'}
