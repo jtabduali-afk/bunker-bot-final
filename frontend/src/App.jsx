@@ -369,6 +369,7 @@ function App() {
 
   const handleRecheckSubscription = () => {
     if (!socket || !lastAttempt) return;
+    playClick();
     setSubError(''); // Сбрасываем старую ошибку перед проверкой
     
     if (lastAttempt.type === 'CREATE') {
@@ -1047,8 +1048,9 @@ function App() {
                Для участия в игре необходимо подписаться на наш Telegram канал. Это помогает нам развивать проект!
              </p>
               <button className="btn-primary" onClick={() => {
+                   playClick();
                    window.Telegram?.WebApp?.expand();
-                   window.Telegram?.WebApp?.openTelegramLink('tg://resolve?domain=SectorX7');
+                   window.Telegram?.WebApp?.openTelegramLink('https://t.me/SectorX7');
                }}>ПОДПИСАТЬСЯ</button>
               <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={handleRecheckSubscription}>Я ПОДПИСАЛСЯ</button>
               
