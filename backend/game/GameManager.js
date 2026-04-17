@@ -159,7 +159,7 @@ class Room {
             if (this.state.round < 3) {
                 this.state.phase = 'SPEAKING';
                 this.state.round += 1;
-                this.triggerRandomEvent(io);
+                this.triggerConsumption(io);
                 this.startTurnForPlayer(0, io);
                 return;
             }
@@ -192,7 +192,6 @@ class Room {
             players: this.players, 
             bunkerCondition: this.state.bunkerCondition,
             resources: this.state.resources,
-            activeEvent: this.state.activeEvent,
             phase: this.state.phase,
             round: this.state.round,
             activeSpeakerId: activePlayer.id,
@@ -205,30 +204,19 @@ class Room {
         }, timeLimit * 1000 + 1000); 
     }
 
-    triggerRandomEvent(io) {
+    triggerConsumption(io) {
+        const livingPlayersCount = this.players.filter(p => p.isAlive).length;
         const consumption = {
-            food: this.players.filter(p => p.isAlive).length * 2,
-            water: this.players.filter(p => p.isAlive).length * 3,
+            food: livingPlayersCount * 2,
+            water: livingPlayersCount * 3,
             energy: 5
         };
         
         this.state.resources.food = Math.max(0, this.state.resources.food - consumption.food);
         this.state.resources.water = Math.max(0, this.state.resources.water - consumption.water);
         this.state.resources.energy = Math.max(0, this.state.resources.energy - consumption.energy);
-
-        if (Math.random() < 0.7) {
-            const event = getRandomEvent();
-            this.state.activeEvent = event;
-            
-            if (event.impact.food) this.state.resources.food = Math.max(0, this.state.resources.food + event.impact.food);
-            if (event.impact.water) this.state.resources.water = Math.max(0, this.state.resources.water + event.impact.water);
-            if (event.impact.energy) this.state.resources.energy = Math.max(0, this.state.resources.energy + event.impact.energy);
-            
-            io.to(this.id).emit('game_event', event);
-            console.log(`[Room ${this.id}] СОБЫТИЕ: ${event.title}`);
-        } else {
-            this.state.activeEvent = null;
-        }
+        
+        io.to(this.id).emit('room_update', { resources: this.state.resources });
     }
 
     checkForceReveal(io) {
@@ -378,7 +366,7 @@ class Room {
                 setTimeout(() => {
                     this.state.phase = 'SPEAKING';
                     this.state.round += 1;
-                    this.triggerRandomEvent(io);
+                    this.triggerConsumption(io);
                     this.startTurnForPlayer(0, io);
                 }, 6000);
             }
