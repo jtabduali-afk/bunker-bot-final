@@ -491,56 +491,15 @@ function App() {
 
   const renderMenu = () => (
     <div className="menu-box">
-      <img src="/logo.png" alt="Sector X" className="menu-header-img" />
-      <div className="menu-inner">
-        <div style={{ padding: '4px 8px', background: 'var(--primary)', color: '#000', fontSize: '0.7rem', fontWeight: '900', display: 'inline-block', marginBottom: '16px' }}>
-             BUNKER_OS V4.2 / ACCESS_GRANTED
-        </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px', border: '1px solid var(--primary-dim)', padding: '12px', background: 'rgba(0,0,0,0.3)' }}>
-             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
-                 EXTERNAL_RAD: <span style={{ color: 'var(--danger)' }}>142.4 mSv/h</span>
-             </div>
-             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
-                 INT_TEMP: <span style={{ color: 'var(--accent)' }}>21.4°C</span>
-             </div>
-             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
-                 ATMOS_PRESSURE: <span style={{ color: 'var(--primary)' }}>1014 hPa</span>
-             </div>
-             <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>
-                 STRUCT_INTEGRITY: <span style={{ color: 'var(--primary)' }}>94%</span>
-             </div>
-        </div>
-
-        <div style={{ textAlign: 'left', marginBottom: '32px' }}>
-          <div style={{ color: 'var(--text-dim)', fontSize: '0.7rem', marginBottom: '4px' }}>IDENTIFICATION:</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px', border: '1px solid var(--glass-border)' }}>
-              <div style={{ width: '40px', height: '40px', background: 'var(--bg-dark)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--primary-dim)' }}>
-                  {playerPhoto ? <img src={playerPhoto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : '👤'}
-              </div>
-              <div style={{ flex: 1 }}>
-                  <div style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '1rem' }}>{playerName}</div>
-                  <div style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>UUID: {playerId.substring(0, 8)}...</div>
-              </div>
-              <button 
-                style={{ background: 'var(--primary-dim)', border: 'none', color: '#000', padding: '4px 8px', fontSize: '0.6rem', fontWeight: '800', cursor: 'pointer' }}
-                onClick={() => { playClick(); setTempPlayerName(playerName); setShowNameModal(true); }}
-              >
-                EDIT
-              </button>
-          </div>
-        </div>
-
-        <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>
-            [ ИНИЦИИРОВАТЬ СПУСК ]
-        </button>
-        <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>
-            [ ПРИСОЕДИНИТЬСЯ К УЗЛУ ]
-        </button>
-        <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>
-            [ ПРОТОКОЛЫ ВЫЖИВАНИЯ ]
-        </button>
-      </div>
+      <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>
+          НАЧАТЬ ИГРУ
+      </button>
+      <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>
+          ПРИСОЕДИНИТЬСЯ
+      </button>
+      <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>
+          ПРАВИЛА ИГРЫ
+      </button>
     </div>
   );
 
@@ -794,43 +753,31 @@ function App() {
       <audio ref={clickRef} src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" />
       <audio ref={revealRef} src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" />
 
-      <div className="floating-sound-btn" onClick={() => setVolume(v => v === 0 ? 0.2 : 0)} style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, cursor: 'pointer', fontSize: '1.5rem', background: 'var(--bg-dark)', padding: '5px', borderRadius: '50%', border: '1px solid var(--primary-dim)' }}>
-          {volume > 0 ? '🔊' : '🔇'}
-      </div>
-
-      <h1 className="game-title" style={{ color: 'var(--c-yellow)', zIndex: 100 }}>Sector X</h1>
-      <div style={{ 
-          color: isConnected ? '#2ecc71' : '#e74c3c', 
-          textAlign: 'center', 
-          fontWeight: 'bold',
-          fontSize: '0.8rem',
-          textShadow: '0 0 5px rgba(0,0,0,0.5)',
-          marginBottom: '20px'
-      }}>
-          {isConnected ? '● СИСТЕМА ОНЛАЙН' : '○ ПОДКЛЮЧЕНИЕ ПРЕРВАНО...'}
-      </div>
+      <h1 className="game-title" style={{ marginBottom: '10px' }}>SECTOR X</h1>
       
-      {screen === 'MENU' && renderMenu()}
-      {screen === 'LOBBY' && renderLobby()}
-      {screen === 'GAME' && renderGame()}
-      {screen === 'GAME_OVER_SCREEN' && renderGameOver()}
+      <div className="header-controls">
+         <button className="hamburger-btn" onClick={() => { playClick(); setIsBurgerOpen(!isBurgerOpen); }}>
+            {isBurgerOpen ? '✕' : '☰'}
+         </button>
+         
+         <div style={{ color: isConnected ? 'var(--accent)' : 'var(--danger)', fontSize: '0.7rem', fontWeight: '800', border: '1px solid currentColor', padding: '4px 12px', borderRadius: '4px', opacity: 0.8 }}>
+            {isConnected ? '● СИСТЕМА ОНЛАЙН' : '○ СВЯЗЬ ПОТЕРЯНА'}
+         </div>
 
-       {(screen === 'LOBBY' || screen === 'GAME') && (
-           <>
-              <div className="burger-btn" onClick={() => setIsBurgerOpen(!isBurgerOpen)} style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 10001, cursor: 'pointer', fontSize: '1.8rem', color: 'var(--primary)' }}>
-                ☰
-              </div>
-              
-              {isBurgerOpen && (
-                  <div className="modal-overlay" style={{ zIndex: 10000, background: 'rgba(0,0,0,0.8)' }} onClick={() => setIsBurgerOpen(false)}>
-                      <div className="menu-box" style={{ maxWidth: '300px', padding: '40px 20px' }} onClick={e => e.stopPropagation()}>
-                          <h3 style={{ marginBottom: '24px', fontSize: '1rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>НАСТРОЙКИ</h3>
-                          <button className="btn-secondary" style={{ width: '100%', marginBottom: '12px' }} onClick={() => setIsBurgerOpen(false)}>ПРОДОЛЖИТЬ</button>
-                          <button className="btn-danger" style={{ width: '100%' }} onClick={handleLeaveRoom}>ВЫЙТИ ИЗ ИГРЫ</button>
-                      </div>
-                  </div>
-              )}
-           </>
+         <button className="floating-sound-btn" onClick={() => { playClick(); toggleMusic(); }}>
+            {isMuted ? '🔇' : '🔊'}
+         </button>
+      </div>
+
+
+       {isBurgerOpen && (
+           <div className="modal-overlay" style={{ zIndex: 100000, background: 'rgba(0,0,0,0.86)' }} onClick={() => setIsBurgerOpen(false)}>
+               <div className="menu-box" style={{ maxWidth: '300px', padding: '40px 24px', background: 'var(--bg-surface)', border: '1px solid var(--primary-dim)', borderRadius: '12px' }} onClick={e => e.stopPropagation()}>
+                   <h3 style={{ marginBottom: '32px', fontSize: '1.1rem', color: 'var(--primary)', textTransform: 'uppercase', textAlign: 'center' }}>ПАНЕЛЬ УПРАВЛЕНИЯ</h3>
+                   <button className="btn-secondary" style={{ width: '100%', marginBottom: '16px' }} onClick={() => setIsBurgerOpen(false)}>ПРОДОЛЖИТЬ</button>
+                   <button className="btn-danger" style={{ width: '100%' }} onClick={handleLeaveRoom}>ВЫЙТИ ИЗ ИГРЫ</button>
+               </div>
+           </div>
        )}
 
       {revealNotif && (
@@ -1194,6 +1141,10 @@ function App() {
       <AnimatePresence>
       </AnimatePresence>
 
+      {screen === 'MENU' && renderMenu()}
+      {screen === 'LOBBY' && renderLobby()}
+      {screen === 'GAME' && renderGame()}
+      {screen === 'GAME_OVER_SCREEN' && renderGameOver()}
     </div>
   );
 }
