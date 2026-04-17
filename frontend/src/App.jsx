@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 import { motion, AnimatePresence } from 'framer-motion'
+import BackgroundFX from './components/BackgroundFX'
 
 const SOCKET_URL = window.location.origin; // Используем текущий домен (Express раздает и фронт и сокеты)
 const ICONS = {
@@ -99,6 +100,14 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [revealNotif, setRevealNotif] = useState(null); // { playerName, label, value }
   const [isBurgerOpen, setIsBurgerOpen] = useState(false);
+  const [resources, setResources] = useState({ food: 100, water: 100, energy: 100 });
+  const [activeEvent, setActiveEvent] = useState(null);
+  
+  // Audio Refs
+  const sirenRef = useRef(null);
+  const clickRef = useRef(null);
+  const revealRef = useRef(null);
+  const eventRef = useRef(null);
   
   const [speechText, setSpeechText] = useState('');
   const [cards, setCards] = useState(null);
@@ -157,6 +166,7 @@ function App() {
         if (data.round != null) setRound(data.round);
         if (data.activeSpeakerId) setActiveSpeakerId(data.activeSpeakerId);
         if (data.messages) setMessages(data.messages);
+        if (data.resources) setResources(data.resources);
         
         // Синхронизируем состояние вскрытия карты для текущего игрока
         if (data.activeSpeakerId === currentId && data.hasRevealedInTurn !== undefined) {
@@ -265,6 +275,14 @@ function App() {
     newSocket.on('round_started', () => {
         setShowBunkerModal(false);
         setIsReady(false);
+        playClick();
+    });
+
+    newSocket.on('game_event', (event) => {
+        setActiveEvent(event);
+        playSiren();
+        // Скрываем через 8 секунд
+        setTimeout(() => setActiveEvent(null), 8000);
     });
 
     return () => newSocket.close();
@@ -306,6 +324,30 @@ function App() {
     if (audioRef.current) {
         audioRef.current.volume = volume;
         audioRef.current.play().catch(() => console.log("Автоплей заблокирован браузером"));
+    }
+  };
+
+  const playClick = () => {
+    if (clickRef.current) {
+        clickRef.current.volume = volume * 2;
+        clickRef.current.currentTime = 0;
+        clickRef.current.play().catch(() => {});
+    }
+  };
+
+  const playSiren = () => {
+    if (sirenRef.current) {
+        sirenRef.current.volume = volume * 1.5;
+        sirenRef.current.currentTime = 0;
+        sirenRef.current.play().catch(() => {});
+    }
+  };
+
+  const playReveal = () => {
+    if (revealRef.current) {
+        revealRef.current.volume = volume * 1.5;
+        revealRef.current.currentTime = 0;
+        revealRef.current.play().catch(() => {});
     }
   };
 
@@ -400,6 +442,7 @@ function App() {
     setHasRevealedThisRound(true);
     setActiveCardKey(null);
     setIsSelfDossierOpen(false); 
+    playReveal();
     
     if (socket) {
        socket.emit('reveal_card', { roomId, playerId, cardKey: key });
@@ -533,20 +576,37 @@ function App() {
 
   const renderGame = () => (
     <>
-      <div className="status-bar">
-        <span style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '1.1rem' }}>
-           {gamePhase === 'VOTING' ? 'ФАЗА ИЗГНАНИЯ' : `РАУНД ${round}`}
+      <div className="status-bar" style={{ gap: '8px', padding: '12px 16px', background: 'var(--bg-dark)', borderBottom: '2px solid var(--primary-dim)' }}>
+        <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+           <div className="res-mini" style={{ color: resources.food < 20 ? 'var(--danger)' : 'var(--primary)' }}>🥩 {resources.food}</div>
+           <div className="res-mini" style={{ color: resources.water < 20 ? 'var(--danger)' : 'var(--primary)' }}>💧 {resources.water}</div>
+           <div className="res-mini" style={{ color: resources.energy < 20 ? 'var(--danger)' : 'var(--primary)' }}>⚡ {resources.energy}</div>
+        </div>
+        <span style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+           {gamePhase === 'VOTING' ? 'ИЗГНАНИЕ' : `РАУНД ${round}`}
         </span>
-        {bunkerCondition && (
-           <button 
-             className="bunker-info-btn"
-             onClick={() => setShowBunkerModal(true)}
-           >
-             ☢️ О БУНКЕРЕ
-           </button>
-        )}
-        {timeLeft > 0 && <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{timeLeft}s</span>}
+        {timeLeft > 0 && <span style={{ color: 'var(--accent)', fontWeight: '600', fontSize: '0.9rem' }}>{timeLeft}S</span>}
       </div>
+
+      <AnimatePresence>
+        {activeEvent && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -20 }}
+            className="event-alert"
+            style={{ 
+              position: 'fixed', top: '80px', left: '16px', right: '16px', zIndex: 1000,
+              background: 'rgba(255, 62, 62, 0.15)', border: '2px solid var(--danger)',
+              padding: '16px', borderRadius: '4px', backdropFilter: 'blur(10px)',
+              boxShadow: '0 0 20px var(--danger-glow)'
+            }}
+          >
+            <div style={{ color: 'var(--danger)', fontWeight: '900', fontSize: '0.8rem', marginBottom: '4px' }}>ВНИМАНИЕ: {activeEvent.title}</div>
+            <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: '1.3' }}>{activeEvent.description}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="game-table-container">
          <h3 style={{ fontSize: '1.2rem', fontWeight: '500', marginBottom: '20px', textAlign: 'center', color: gamePhase === 'VOTING' ? 'var(--danger)' : 'var(--text-dim)' }}>
@@ -717,8 +777,14 @@ function App() {
 
   return (
     <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
+      <BackgroundFX activeEvent={activeEvent} />
+      
       <audio ref={audioRef} src="/bg.mp3" loop />
-      <div className="floating-sound-btn" onClick={() => setVolume(v => v === 0 ? 0.2 : 0)} style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, cursor: 'pointer', fontSize: '1.5rem' }}>
+      <audio ref={sirenRef} src="https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3" />
+      <audio ref={clickRef} src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" />
+      <audio ref={revealRef} src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" />
+
+      <div className="floating-sound-btn" onClick={() => setVolume(v => v === 0 ? 0.2 : 0)} style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, cursor: 'pointer', fontSize: '1.5rem', background: 'var(--bg-dark)', padding: '5px', borderRadius: '50%', border: '1px solid var(--primary-dim)' }}>
           {volume > 0 ? '🔊' : '🔇'}
       </div>
 
