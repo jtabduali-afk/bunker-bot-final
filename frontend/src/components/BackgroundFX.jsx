@@ -1,24 +1,33 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 const BackgroundFX = () => {
+  // Memoize particles to prevent re-renders jittering
+  const particles = useMemo(() => {
+    return [...Array(15)].map((_, i) => ({
+      id: i,
+      left: Math.random() * 100 + '%',
+      top: Math.random() * 100 + '%',
+      size: Math.random() * 3 + 1 + 'px',
+      duration: Math.random() * 10 + 15 + 's',
+      delay: Math.random() * -20 + 's'
+    }));
+  }, []);
+
   return (
-    <div className={`fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-black`}>
-      {/* Scanline Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-50"></div>
-      
+    <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-black">
       {/* Dust Particles */}
-      <div className="absolute inset-0 opacity-20">
-        {[...Array(20)].map((_, i) => (
+      <div className="absolute inset-0 opacity-10">
+        {particles.map((p) => (
           <div
-            key={i}
-            className="absolute rounded-full bg-amber-500/30 blur-[1px]"
+            key={p.id}
+            className="absolute rounded-full bg-amber-500/20 blur-[1px]"
             style={{
-              width: Math.random() * 4 + 1 + 'px',
-              height: Math.random() * 4 + 1 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              animation: `float ${Math.random() * 10 + 10}s linear infinite`,
-              animationDelay: `${Math.random() * -20}s`
+              width: p.size,
+              height: p.size,
+              left: p.left,
+              top: p.top,
+              animation: `float ${p.duration} linear infinite`,
+              animationDelay: p.delay
             }}
           />
         ))}
@@ -26,10 +35,10 @@ const BackgroundFX = () => {
 
       <style jsx>{`
         @keyframes float {
-          0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translate(${Math.random() * 100 - 50}px, -100vh) rotate(360deg); opacity: 0; }
+          0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
       `}</style>
     </div>
