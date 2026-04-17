@@ -120,14 +120,28 @@ h1, h2, h3, .heading-font {
 }
 
 h1.game-title {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 900;
   text-align: center;
   color: var(--primary);
-  margin: 32px 0;
+  margin: 10px 0 20px 0;
   letter-spacing: 0.2em;
   text-shadow: 0 0 10px var(--primary-glow);
   position: relative;
+  z-index: 10;
+  transition: all 0.5s ease;
+}
+
+.menu-mode h1.game-title {
+  font-size: 3.5rem;
+  margin-top: -10px;
+  margin-bottom: 30px;
+  color: #fff;
+  text-shadow: 
+    0 0 10px var(--primary-glow),
+    0 0 30px var(--primary-glow),
+    0 0 60px var(--primary-glow);
+  animation: flicker 3s infinite;
 }
 
 h2.screen-title {
@@ -209,6 +223,40 @@ h2.screen-title {
 /* CARDS & CONTAINERS */
 .menu-box {
   width: 100%;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.menu-screen-vibe {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  border-radius: 20px;
+  background: 
+    radial-gradient(circle at 50% 40%, rgba(255, 176, 0, 0.05) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.8) 100%),
+    repeating-linear-gradient(45deg, rgba(20, 22, 20, 0.4) 0, rgba(20, 22, 20, 0.4) 10px, rgba(25, 30, 25, 0.4) 10px, rgba(25, 30, 25, 0.4) 20px);
+  border: 1px solid rgba(255, 176, 0, 0.1);
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+  margin-top: -20px;
+}
+
+.menu-screen-vibe::before {
+  content: "BUNKER ENTRANCE // SECTOR X";
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  font-size: 0.6rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--primary);
+  opacity: 0.3;
+  letter-spacing: 0.2em;
 }
 
 .room-code-display {
