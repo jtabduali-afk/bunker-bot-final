@@ -278,13 +278,6 @@ function App() {
         playClick();
     });
 
-    newSocket.on('game_event', (event) => {
-        setActiveEvent(event);
-        playSiren();
-        // Скрываем через 8 секунд
-        setTimeout(() => setActiveEvent(null), 8000);
-    });
-
     return () => newSocket.close();
   }, []);
 
@@ -366,6 +359,7 @@ function App() {
   const handleJoinSubmit = () => {
     if (!socket || !joinCode) return;
     setLastAttempt({ type: 'JOIN', roomId: joinCode });
+    playClick();
     socket.emit('join_room', { roomId: joinCode, playerId, playerName, photoUrl: playerPhoto });
     setRoomId(joinCode);
     setScreen('LOBBY');
@@ -391,7 +385,7 @@ function App() {
 
   const handleNicknameChange = () => {
       if (!tempPlayerName.trim()) return;
-      setPlayerName(tempPlayerName);
+      playClick();
       if (socket && roomId) {
           socket.emit('change_nickname', { roomId, playerId, newName: tempPlayerName });
       }
@@ -400,12 +394,14 @@ function App() {
 
   const handleSendSpeech = () => {
       if (!speechText.trim()) return;
+      playClick();
       socket.emit('send_speech', { roomId, playerId, text: speechText });
       setSpeechText(''); // Очищаем поле
   };
 
   const handleLeaveRoom = () => {
     if (socket && roomId) {
+        playClick();
         socket.emit('leave_room', { playerId });
         setRoomId(null);
         setScreen('MENU');
@@ -414,12 +410,13 @@ function App() {
   };
 
   const getAvatar = (p) => {
-      if (p.photoUrl) return <img src={p.photoUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />;
+      if (p.photoUrl) return <img src={p.photoUrl} alt="" className={!p.isAlive ? 'dead-avatar' : ''} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />;
       return <span style={{ fontSize: '1.5rem' }}>{!p.isAlive ? '💀' : '👤'}</span>;
   };
 
   const handlePlayerReady = () => {
       if (!socket || !roomId || isReady) return;
+      playClick();
       setIsReady(true);
       socket.emit('player_ready', { roomId, playerId });
   };
@@ -443,6 +440,7 @@ function App() {
     setActiveCardKey(null);
     setIsSelfDossierOpen(false); 
     playReveal();
+    playClick();
     
     if (socket) {
        socket.emit('reveal_card', { roomId, playerId, cardKey: key });
@@ -477,6 +475,7 @@ function App() {
             return;
         }
         if (window.confirm(`Вы уверены, что хотите отдать голос против: ${p.name}?`)) {
+            playClick();
             setVotedFor(p.id);
             socket.emit('cast_vote', { roomId, playerId, targetId: p.id });
         }
@@ -509,9 +508,9 @@ function App() {
             Изменить
           </button>
       </div>
-      <button className="btn-primary" onClick={moveToLobby}>СОЗДАТЬ ИГРУ</button>
-      <button className="btn-secondary" onClick={() => setShowJoinModal(true)}>ПРИСОЕДИНИТЬСЯ</button>
-      <button className="btn-secondary" onClick={() => setShowRulesModal(true)}>ПРАВИЛА ИГРЫ</button>
+      <button className="btn-primary" onClick={() => { playClick(); playBackgroundMusic(); moveToLobby(); }}>СОЗДАТЬ ИГРУ</button>
+      <button className="btn-secondary" onClick={() => { playClick(); playBackgroundMusic(); setShowJoinModal(true); }}>ПРИСОЕДИНИТЬСЯ</button>
+      <button className="btn-secondary" onClick={() => { playClick(); setShowRulesModal(true); }}>ПРАВИЛА ИГРЫ</button>
     </div>
   );
 
@@ -527,7 +526,7 @@ function App() {
   const renderLobby = () => (
     <div className="menu-box">
       <h2 className="screen-title">ЖДЕМ ВЫЖИВШИХ</h2>
-      <div className="room-code-display" onClick={copyToClipboard}>
+      <div className="room-code-display" onClick={() => { playClick(); copyToClipboard(); }}>
         {roomId}
         {isCopied && <span className="copy-hint">СКОПИРОВАНО!</span>}
       </div>
@@ -587,26 +586,6 @@ function App() {
         </span>
         {timeLeft > 0 && <span style={{ color: 'var(--accent)', fontWeight: '600', fontSize: '0.9rem' }}>{timeLeft}S</span>}
       </div>
-
-      <AnimatePresence>
-        {activeEvent && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -20 }}
-            className="event-alert"
-            style={{ 
-              position: 'fixed', top: '80px', left: '16px', right: '16px', zIndex: 1000,
-              background: 'rgba(255, 62, 62, 0.15)', border: '2px solid var(--danger)',
-              padding: '16px', borderRadius: '4px', backdropFilter: 'blur(10px)',
-              boxShadow: '0 0 20px var(--danger-glow)'
-            }}
-          >
-            <div style={{ color: 'var(--danger)', fontWeight: '900', fontSize: '0.8rem', marginBottom: '4px' }}>ВНИМАНИЕ: {activeEvent.title}</div>
-            <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: '1.3' }}>{activeEvent.description}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="game-table-container">
          <h3 style={{ fontSize: '1.2rem', fontWeight: '500', marginBottom: '20px', textAlign: 'center', color: gamePhase === 'VOTING' ? 'var(--danger)' : 'var(--text-dim)' }}>
@@ -699,7 +678,7 @@ function App() {
                   </p>
                   <button 
                     className="btn-primary" 
-                    onClick={() => socket.emit('end_turn', { roomId, playerId })}
+                    onClick={() => { playClick(); socket.emit('end_turn', { roomId, playerId }); }}
                     disabled={!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER'}
                     style={(!hasRevealedThisRound && gamePhase !== 'TIE_BREAKER') ? { opacity: 0.4, cursor: 'not-allowed', filter: 'none' } : {}}
                   >
@@ -777,7 +756,7 @@ function App() {
 
   return (
     <div className={`app-container ${gamePhase === 'VOTING' ? 'voting-mode' : ''}`}>
-      <BackgroundFX activeEvent={activeEvent} />
+      <BackgroundFX />
       
       <audio ref={audioRef} src="/bg.mp3" loop />
       <audio ref={sirenRef} src="https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3" />
@@ -1156,11 +1135,14 @@ function App() {
         )}
         
         {eliminatedPlayerInfo && (
-           <div className="spotlight-overlay" style={{ background: 'rgba(150, 0, 0, 0.9)' }}>
-              <div style={{ fontSize: '8rem' }}>💀</div>
-              <h2 style={{ fontFamily: 'Teko', fontSize: '3rem', color: '#fff', textShadow: '4px 4px 0px #000', textAlign: 'center', padding: '20px' }}>
-                  {eliminatedPlayerInfo.eliminatedName.toUpperCase()} ИЗГНАН ИЗ БУНКЕРА!
-              </h2>
+           <div className="modal-overlay" style={{ background: 'rgba(150, 0, 0, 0.9)', zIndex: 9000 }}>
+              <div style={{ textAlign: 'center', animation: 'scaleUp 0.3s ease-out' }}>
+                <div style={{ fontSize: '8rem', marginBottom: '20px' }}>💀</div>
+                <h2 style={{ fontFamily: 'Outfit', fontSize: '3rem', color: '#fff', textShadow: '4px 4px 0px #000', marginBottom: '10px' }}>
+                    {eliminatedPlayerInfo.eliminatedName.toUpperCase()}
+                </h2>
+                <h3 style={{ fontSize: '1.5rem', color: '#ff8888', letterSpacing: '0.2em' }}>ИЗГНАН ИЗ БУНКЕРА!</h3>
+              </div>
            </div>
         )}
 
