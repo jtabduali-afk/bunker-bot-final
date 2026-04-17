@@ -1,40 +1,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;900&display=swap');
 
 :root {
-  /* Survivalist Minimalism Palette */
-  --bg-deep: #0f110f;
-  --bg-dark: #1a1d1a;
-  --bg-surface: rgba(28, 32, 28, 0.75);
-  --bg-card: rgba(35, 40, 35, 0.85);
+  /* Analog Industrial Survival Palette */
+  --bg-deep: #0a0b0a;       /* Total Darkness */
+  --bg-dark: #141614;       /* Heavy Metal */
+  --bg-surface: #1a1e1a;    /* Weathered Surface */
+  --bg-card: rgba(22, 26, 22, 0.9);
   
-  --primary: #8da37e;       /* Soft Olive */
-  --primary-glow: rgba(141, 163, 126, 0.3);
+  --primary: #ffb000;       /* Classic Amber Terminal */
+  --primary-glow: rgba(255, 176, 0, 0.25);
+  --primary-dim: #8a6000;
   
-  --accent: #d48a56;        /* Muted Rust / Clay */
-  --accent-glow: rgba(212, 138, 86, 0.3);
+  --accent: #00ff41;        /* Matrix Green / High Tech */
+  --accent-glow: rgba(0, 255, 65, 0.25);
   
-  --danger: #9c4a4a;        /* Desaturated Red */
-  --success: #6b8e23;       /* Olive Drab */
+  --danger: #ff3e3e;        /* Emergency Red */
+  --danger-glow: rgba(255, 62, 62, 0.3);
   
-  --text-main: #e1e8e1;
-  --text-dim: #9aa39a;
-  --text-dark: #0a0c0a;
+  --success: #00ff41;
+  
+  --text-main: #ffcc66;     /* Warm Amber Text */
+  --text-dim: #a67c00;      /* Faded Amber */
+  --text-dark: #000000;
 
-  /* Card Categories (Desaturated versions) */
-  --c-profession: #9e9160;  /* Muted Gold */
-  --c-biology: #ba7c5b;     /* Terracotta */
-  --c-health: #a35d5d;      /* Dusty Rose/Red */
-  --c-hobby: #7a8c6a;       /* Sage */
-  --c-luggage: #6b7c8c;     /* Steel Blue */
-  --c-fact: #6b8c85;        /* Muted Teal */
-  --c-action: #7c6b8c;      /* Muted Purple */
+  /* Status Colors */
+  --c-warning: #ffa500;
+  --c-resource: #0080ff;
   
   /* Utils */
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --radius-lg: 20px;
-  --radius-md: 12px;
-  --shadow-soft: 0 10px 40px rgba(0,0,0,0.5);
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --industrial-border: 2px solid #2a2f2a;
+  --radius-lg: 12px;       /* Sharper industrial corners */
+  --radius-md: 4px;
+  --shadow-hard: 0 4px 0px #000;
+  --transition: all 0.2s steps(4); /* Steps transition for retro feel */
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes flicker {
+  0% { opacity: 0.98; }
+  5% { opacity: 1; }
+  10% { opacity: 0.99; }
+  15% { opacity: 0.98; }
+  25% { opacity: 0.99; }
+  35% { opacity: 1; }
+  45% { opacity: 0.98; }
+  55% { opacity: 1; }
+  65% { opacity: 0.99; }
+  75% { opacity: 0.98; }
+  85% { opacity: 1; }
+  95% { opacity: 0.99; }
+  100% { opacity: 0.98; }
 }
 
 * {
@@ -51,114 +70,121 @@ body {
   min-height: 100vh;
   margin: 0;
   background-image: 
-    radial-gradient(circle at 50% 50%, rgba(141, 163, 126, 0.05) 0%, transparent 60%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
+    radial-gradient(circle at 50% 50%, rgba(255, 176, 0, 0.03) 0%, transparent 80%),
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 100%, 100% 4px, 100% 100%;
   background-attachment: fixed;
   overflow-x: hidden;
   line-height: 1.6;
+  animation: flicker 0.15s infinite;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 2px;
+  background: rgba(255, 176, 0, 0.05);
+  opacity: 0.2;
+  z-index: 10000;
+  pointer-events: none;
+  animation: scanline 8s linear infinite;
 }
 
 .app-container {
-  max-width: 500px; /* More compact for mobile feels */
+  max-width: 500px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 16px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 1;
 }
 
 /* TYPOGRAPHY */
 h1, h2, h3, .heading-font {
   font-family: 'Outfit', sans-serif;
-  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 h1.game-title {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 900;
   text-align: center;
-  color: var(--text-main);
-  text-transform: uppercase;
-  margin: 40px 0;
-  background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  color: var(--primary);
+  margin: 32px 0;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 10px var(--primary-glow);
+  position: relative;
 }
 
 h2.screen-title {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--primary);
   margin-bottom: 24px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-h2.screen-title::after, h2.screen-title::before {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: linear-gradient(to right, transparent, var(--glass-border), transparent);
+  background: var(--bg-surface);
+  padding: 8px;
+  border-left: 4px solid var(--primary);
+  text-align: left;
 }
 
 /* BUTTONS */
 .btn-primary, .btn-secondary, .btn-danger {
   width: 100%;
-  padding: 18px 24px;
+  padding: 16px 20px;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 1rem;
-  border: 1px solid var(--glass-border);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: var(--industrial-border);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  position: relative;
-  overflow: hidden;
+  text-transform: uppercase;
+  background: #2a2f2a;
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary-dim);
   color: var(--text-dark);
-  box-shadow: 0 4px 15px var(--primary-glow);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 8px 25px var(--primary-glow);
-}
-
-.btn-secondary {
-  background: var(--bg-surface);
-  color: var(--text-main);
-  backdrop-filter: blur(10px);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-hard);
   border-color: var(--primary);
 }
 
+.btn-primary:hover {
+  background: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #000;
+}
+
+.btn-secondary {
+  background: #1a1e1a;
+  color: var(--text-main);
+  box-shadow: var(--shadow-hard);
+}
+
+.btn-secondary:hover {
+  background: #252a25;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .btn-danger {
-  background: rgba(156, 74, 74, 0.2);
-  color: var(--danger);
+  background: #4a1a1a;
+  color: #ff8888;
   border-color: var(--danger);
 }
 
 .btn-danger:hover {
   background: var(--danger);
-  color: white;
+  color: black;
 }
 
 .btn-primary:active { transform: scale(0.98); }
