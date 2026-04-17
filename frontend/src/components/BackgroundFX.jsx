@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BackgroundFX = ({ activeEvent }) => {
+const BackgroundFX = () => {
   return (
     <div className={`fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-black`}>
       {/* Scanline Overlay */}
@@ -24,27 +24,12 @@ const BackgroundFX = ({ activeEvent }) => {
         ))}
       </div>
 
-      {/* Extreme Glitch for Events */}
-      {activeEvent && (
-        <div className={`absolute inset-0 z-40 mix-blend-overlay opacity-30 animate-pulse bg-red-900/40`}>
-           <div className="absolute inset-0 bg-white/5 animate-glitch transform translate-x-1"></div>
-        </div>
-      )}
-
       <style jsx>{`
         @keyframes float {
           0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
           10% { opacity: 1; }
           90% { opacity: 1; }
           100% { transform: translate(${Math.random() * 100 - 50}px, -100vh) rotate(360deg); opacity: 0; }
-        }
-        @keyframes glitch {
-            0% { clip-path: inset(80% 0 0 0); transform: translate(-5px); }
-            20% { clip-path: inset(20% 0 50% 0); transform: translate(5px); }
-            40% { clip-path: inset(50% 0 30% 0); transform: translate(-5px); }
-            60% { clip-path: inset(10% 0 70% 0); transform: translate(5px); }
-            80% { clip-path: inset(60% 0 10% 0); transform: translate(-5px); }
-            100% { clip-path: inset(80% 0 0 0); transform: translate(5px); }
         }
       `}</style>
     </div>
