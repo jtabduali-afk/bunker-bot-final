@@ -44,9 +44,6 @@ function App() {
   // Добавим защиту от бесконечных циклов
   const renderCount = useRef(0);
   const audioRef = useRef(null);
-  const sirenRef = useRef(null);
-  const clickRef = useRef(null);
-  const revealRef = useRef(null);
   
   useEffect(() => {
     renderCount.current++;
@@ -70,8 +67,6 @@ function App() {
     setVolume(v => v === 0 ? 0.2 : 0);
   };
   
-  const playClick = () => { if (clickRef.current) clickRef.current.play(); };
-  const playBackgroundMusic = () => { if (audioRef.current) audioRef.current.play(); };
   
   // Voting States
   const [gamePhase, setGamePhase] = useState('SPEAKING'); // SPEAKING, VOTING, TIE_BREAKER
