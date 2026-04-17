@@ -1,0 +1,3 @@
+Copyright 2024 Anthropics
+
+Complete terms available at: https://github.com/anthropics/skills/blob/main/LICENSE
