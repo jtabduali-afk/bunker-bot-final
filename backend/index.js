@@ -9,7 +9,6 @@ import { GameManager } from './game/GameManager.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import localtunnel from 'localtunnel';
 import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,22 +70,27 @@ console.log('🤖 Проверка BOT_TOKEN...');
 if (botToken && botToken !== 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER') {
     console.log('🚀 Подготовка к запуску Telegram Бота...');
     
-    bot.telegram.deleteWebhook({ drop_pending_updates: true })
-        .then(() => {
-            console.log('🧹 Старые вебхуки удалены.');
-            // Запуск бота с оптимизированными настройками опроса
-            return bot.launch({
+    const launchBot = async () => {
+        try {
+            await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+            console.log('🧹 Старые вебхуки удалены, очередь обновлений очищена.');
+            
+            await bot.launch({
                 polling: {
-                    timeout: 30, // Таймаут ожидания апдейтов (сек)
-                    limit: 100,  // Макс. кол-во апдейтов за раз
+                    timeout: 30,
+                    limit: 100,
                     allowed_updates: ['message', 'callback_query']
                 }
             });
-        })
-        .then(() => console.log('✅ Telegram Bot успешно запущен!'))
-        .catch((err) => {
-            console.error('❌ Ошибка при запуске бота:', err);
-        });
+            console.log('✅ Telegram Bot успешно запущен!');
+        } catch (err) {
+            console.error('❌ Ошибка при запуске бота:', err.message);
+            console.log('🔄 Повторная попытка запуска через 10 секунд...');
+            setTimeout(launchBot, 10000);
+        }
+    };
+
+    launchBot();
 } 
 
 // --- СИСТЕМА МОНИТОРИНГА И KEEP-ALIVE ---
@@ -123,46 +127,19 @@ setInterval(keepAlive, 840000); // Каждые 14 минут (Render засып
 
 // Запуск настройки доступа
 const setupAccess = async () => {
-    // Если мы на Render, используем переменную окружения
-    if (process.env.NODE_ENV === 'production') {
-        const prodUrl = process.env.FRONTEND_URL;
-        console.log('🌐 Режим Production. Целевой URL:', prodUrl);
-        
-        if (prodUrl && bot && bot.telegram) {
-            bot.telegram.setChatMenuButton({
-                menu_button: {
-                    type: 'web_app',
-                    text: 'Играть в Бункер ☢️',
-                    web_app: { url: prodUrl }
-                }
-            }).catch(() => console.log('Не удалось обновить Menu Button в Prod (не критично)'));
-        }
-        return;
-    }
-
-    console.log('📡 Попытка создать публичную ссылку для Mini App (ждем ответа сервера localtunnel)...');
-    try {
-        const tunnel = await localtunnel({ port: PORT });
-        console.log(`\n\x1b[42m\x1b[30m %s \x1b[0m`, `ГОРЯЧАЯ ССЫЛКА ДЛЯ ТЕСТИРОВАНИЯ:`);
-        console.log(`\x1b[32m%s\x1b[0m\n`, tunnel.url); 
-        
-        process.env.FRONTEND_URL = tunnel.url;
-
-        if (bot && bot.telegram) {
-            bot.telegram.setChatMenuButton({
-                menu_button: {
-                    type: 'web_app',
-                    text: 'Играть в Бункер ☢️',
-                    web_app: { url: tunnel.url }
-                }
-            }).catch(() => console.log('Не удалось обновить Menu Button автоматически'));
-        }
-
-        tunnel.on('close', () => {
-            console.log('🔴 Соединение localtunnel закрыто');
-        });
-    } catch (err) {
-        console.error('Ошибка при создании localtunnel:', err);
+    const prodUrl = process.env.FRONTEND_URL;
+    
+    if (prodUrl && bot && bot.telegram && prodUrl.includes('https')) {
+        console.log('🌐 Обновление кнопки меню бота на URL:', prodUrl);
+        bot.telegram.setChatMenuButton({
+            menu_button: {
+                type: 'web_app',
+                text: 'Играть в Бункер ☢️',
+                web_app: { url: prodUrl }
+            }
+        }).catch(() => console.log('Не удалось обновить Menu Button (проверьте FRONTEND_URL в .env)'));
+    } else {
+        console.log('⚠️ FRONTEND_URL не настроен или не является https. Кнопка меню не обновлена.');
     }
 };
 
