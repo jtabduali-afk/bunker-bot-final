@@ -105,25 +105,25 @@ const logMemory = () => {
 
 // Функция самопинг-а (чтобы Render не засыпал)
 const keepAlive = () => {
-    const url = process.env.FRONTEND_URL || `http://localhost:${PORT}`;
-    if (!url.includes('render.com')) {
-        // На локалке самопинг не обязателен
+    const url = process.env.FRONTEND_URL;
+    if (!url || !url.includes('render.com')) {
         return;
     }
 
-    console.log(`[Keep-Alive] Пингую систему: ${url}`);
-    const client = url.startsWith('https') ? https : http;
+    console.log(`[Keep-Alive] Пингую систему для поддержания активности: ${url}`);
     
+    // Пингуем сам себя
+    const client = url.startsWith('https') ? https : http;
     client.get(`${url}/api/health`, (res) => {
-        console.log(`[Keep-Alive] Статус: ${res.statusCode}`);
+        console.log(`[Keep-Alive] Ответ получен, статус: ${res.statusCode}`);
     }).on('error', (err) => {
-        console.error('[Keep-Alive ERROR] Ошибка пинга:', err.message);
+        console.error('[Keep-Alive ERROR] Ошибка самопинга:', err.message);
     });
 };
 
 // Запускаем интервалы
 setInterval(logMemory, 300000); // Каждые 5 минут
-setInterval(keepAlive, 840000); // Каждые 14 минут (Render засыпает через 15)
+setInterval(keepAlive, 600000); // Каждые 10 минут (Render засыпает через 15)
 
 // Запуск настройки доступа
 const setupAccess = async () => {
